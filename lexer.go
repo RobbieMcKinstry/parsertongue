@@ -4,6 +4,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"os"
 
 	"golang.org/x/exp/ebnf"
 )
@@ -39,4 +40,12 @@ func (lex *L) run() {
 	for state := startFn; state != nil; state = state(lex, lexGlob, make(chan match)) {
 	}
 	close(lex.tokens)
+}
+
+func lex(g ebnf.Grammar, f *os.File) (*L, chan<- Token) {
+
+	channel := make(chan Token)
+	lexer := NewLexer(g, f, channel)
+	go lexer.run()
+	return lexer, channel
 }
