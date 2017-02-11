@@ -1,0 +1,5 @@
+package: github.com/RobbieMcKinstry/parsertongue
+import:
+- package: golang.org/x/exp
+  subpackages:
+  - ebnf
