@@ -26,9 +26,6 @@ func (lex *L) emit(t Token) {
 	lex.tokens <- t
 }
 
-// TODO move this into a global file
-var startFn = stateFn(NewlineStateFn)
-
 func (lex *L) run() {
 	// Start at the start state -> this should be at the very top of the tree.
 

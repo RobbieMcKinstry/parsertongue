@@ -10,11 +10,3 @@ func (t Token) String() string {
 	}
 	return fmt.Sprintf("%q", t.val)
 }
-
-var EOF = Token{
-	typ:          eofType,
-	val:          "EOF",
-	FileLocation: FileLocation{-1, -1},
-}
-
-var eofType = TokenType(0)
