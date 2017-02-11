@@ -33,14 +33,7 @@ func VerifyGrammar(g ebnf.Grammar) ebnf.Grammar {
 	return g
 }
 
-var prebuilt = map[string]stateFn{
-	"newline": stateFn(NewlineStateFn),
-	//	"unicode_char": ,
-	//	"unicode_letter": ,
-	//	"unicode_digit": ,
-	//	"token": ,
-}
-
+// TODO implement
 func lookupPrebuilt(name string) {
 
 }
@@ -49,7 +42,7 @@ func ToStateFunction(prod ebnf.Production) stateFn {
 
 	// TODO Implement
 	return func(lex *L, in LexemeGlob, ok chan<- match) stateFn {
-		return stateFn(NewlineStateFn)
+		return stateFn(doneStateFn)
 	}
 }
 

@@ -4,13 +4,22 @@ import (
 	"unicode"
 )
 
-// ---------------------------------------------\\
-// -------- PUT THIS IN ITS OWN FILE -----------\\
-// ---------------------------------------------\\
+func doneStateFn(lex *L, start LexemeGlob, ok chan<- match) stateFn {
+	return nil
+}
 
-// TODO implement
-func NewlineStateFn(lex *L, start LexemeGlob, ok chan<- match) stateFn {
-	return stateFn(NewlineStateFn)
+func runeMatcher(rch runeChecker) stateFn {
+	return stateFn(func(lex *L, start LexemeGlob, ok chan<- match) stateFn {
+		// check to see if the next character meets the requirement.
+		// If so, it's a match!
+		// Return the done state and write to the channel.
+		if rch(start.next()) {
+			ok <- match{start}
+		} else {
+			start.backup()
+		}
+		return stateFn(doneStateFn)
+	})
 }
 
 // IsNewline checks if the rune is a newline char
@@ -19,7 +28,6 @@ func IsNewline(r rune) bool {
 }
 
 // IsUnicodeChar checks if the rune is a unicode char
-// TODO wtf is this doing??/
 func IsUnicodeChar(r rune) bool {
 	return !IsNewline(r)
 }

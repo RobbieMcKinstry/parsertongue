@@ -39,6 +39,8 @@ type (
 	stateFn func(lex *L, in LexemeGlob, ok chan<- match) stateFn
 
 	match struct {
-		start, end LexemeGlob
+		lexeme LexemeGlob
 	}
+
+	runeChecker func(r rune) bool
 )
