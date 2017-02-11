@@ -5,9 +5,6 @@ import (
 )
 
 var (
-	// TODO replace this with a genuine StartFn
-	startFn = stateFn(doneStateFn)
-
 	EOF = Token{
 		typ:          eofType,
 		val:          "EOF",

@@ -34,7 +34,7 @@ func (lex *L) run() {
 	// this is NOT right.
 	// We shouldn't be spinning endlessly here, I don't think.
 	// We should definitely be more careful about how this works and what it's returning.
-	for state := startFn; state != nil; state = state(lex, lexGlob, make(chan match)) {
+	for state := stateFn(startFn); state != nil; state = state(lex, lexGlob, make(chan match)) {
 	}
 	close(lex.tokens)
 }

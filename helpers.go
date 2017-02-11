@@ -8,6 +8,12 @@ func doneStateFn(lex *L, start LexemeGlob, ok chan<- match) stateFn {
 	return nil
 }
 
+// TODO implement
+// Get the Root production, convert it to a stateFn, and execute it.
+func startFn(lex *L, start LexemeGlob, ok chan<- match) stateFn {
+	return stateFn(doneStateFn)
+}
+
 func runeMatcher(rch runeChecker) stateFn {
 	return stateFn(func(lex *L, start LexemeGlob, ok chan<- match) stateFn {
 		// check to see if the next character meets the requirement.
