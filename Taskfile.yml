@@ -1,0 +1,8 @@
+test:
+    cmds:
+        - go test ./grammar/...
+ 
+build:
+    cmds:
+        - go generate ./...
+        - go build .
