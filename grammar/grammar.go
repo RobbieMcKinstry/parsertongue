@@ -8,6 +8,7 @@ import (
 	"golang.org/x/exp/ebnf"
 )
 
+// G is a grammar
 type G struct {
 	// the underlying grammar
 	gram ebnf.Grammar
@@ -30,16 +31,46 @@ func wrapOpen() func(string) (io.Reader, error) {
 	}
 }
 
-func (gram G) Grammar() ebnf.Grammar {
+// Grammar returns the grammar
+func (gram *G) Grammar() ebnf.Grammar {
 	return gram.gram
 }
 
-func (gram G) LexemeNames() []string {
+// LexemeNames returns the lex names
+func (gram *G) LexemeNames() []string {
 	return gram.lexemes
 }
 
-func (gram G) ProdNames() []string {
+// ProdNames returns the prodnames
+func (gram *G) ProdNames() []string {
 	return gram.prods
+}
+
+// Prod returns the production with the
+// given name
+func (gram *G) Prod(name string) *ebnf.Production {
+	prod, ok := gram.gram[name]
+	if !ok {
+		return nil
+	}
+	return prod
+}
+
+// IsLexeme returns true if the name
+// starts with a lower case letter
+func IsLexeme(name string) bool {
+	if len(name) < 1 {
+		return false
+	}
+
+	firstLetter := []rune(name)[0]
+	return unicode.IsLower(firstLetter)
+}
+
+// Children returns the list of names reprenting the children
+// of this tree node
+func Children(parent *ebnf.Production) []string {
+	return []string{}
 }
 
 func newG() *G {
@@ -71,12 +102,7 @@ func lowercaseProds(gram ebnf.Grammar) []string {
 
 	var res []string
 	for name := range gram {
-		if len(name) < 1 {
-			continue
-		}
-
-		firstLetter := []rune(name)[0]
-		if unicode.IsLower(firstLetter) {
+		if IsLexeme(name) {
 			res = append(res, name)
 		}
 	}
@@ -90,12 +116,7 @@ func uppercaseProds(gram ebnf.Grammar) []string {
 
 	var res []string
 	for name := range gram {
-		if len(name) < 1 {
-			continue
-		}
-
-		firstLetter := []rune(name)[0]
-		if !unicode.IsLower(firstLetter) {
+		if !IsLexeme(name) {
 			res = append(res, name)
 		}
 	}
