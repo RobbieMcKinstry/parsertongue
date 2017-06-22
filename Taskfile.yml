@@ -1,8 +1,16 @@
 test:
     cmds:
-        - go test ./grammar/...
+        - go test -coverprofile=coverage.out ./grammar/...
  
 build:
     cmds:
         - go generate ./...
         - go build .
+
+view-cover:
+    cmds:
+        - go tool cover -func=coverage.out
+
+browser-cover:
+    cmds:
+        - go tool cover -html=coverage.out

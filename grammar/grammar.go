@@ -1,8 +1,10 @@
 package grammar
 
 import (
+	"fmt"
 	"io"
 	"os"
+	"reflect"
 	"unicode"
 
 	"golang.org/x/exp/ebnf"
@@ -22,6 +24,15 @@ type G struct {
 
 	// open is a mockable version of os.Open
 	open func(string) (io.Reader, error)
+
+	// SentenceRoot is the expected root production of this
+	// grammar
+	sentenceRoot string
+}
+
+// SentenceRoot will set the sentence root on this object
+func (gram *G) SentenceRoot(root string) {
+	gram.sentenceRoot = root
 }
 
 func wrapOpen() func(string) (io.Reader, error) {
@@ -48,9 +59,14 @@ func (gram *G) ProdNames() []string {
 
 // Prod returns the production with the
 // given name
+// TODO fix, this is like poisoning the well...
 func (gram *G) Prod(name string) *ebnf.Production {
 	prod, ok := gram.gram[name]
 	if !ok {
+		fmt.Println("Failed to receive the expected production")
+		fmt.Printf("Prod is: %v\n", prod)
+		fmt.Printf("Name is: %v\n", name)
+		fmt.Printf("Gram is: %v\n", gram.gram)
 		return nil
 	}
 	return prod
@@ -70,13 +86,115 @@ func IsLexeme(name string) bool {
 // Children returns the list of names reprenting the children
 // of this tree node
 func Children(parent *ebnf.Production) []string {
-	return []string{}
+	fmt.Println(Stringify(parent))
+	if parent == nil {
+		fmt.Println("Not supposed to receive a nil element...")
+		return []string{}
+	}
+	altSet := parent.Expr
+	return exprChildren(altSet)
+}
+
+// Stringify Turn a prod into a string
+func Stringify(p *ebnf.Production) string {
+	if p == nil {
+		return "nil"
+	}
+	var rewriteRule = "nil"
+	if p.Expr != nil {
+		rewriteRule = ExprString(p.Expr)
+	}
+
+	return fmt.Sprintf("%v --> %v", p.Name.String, rewriteRule)
+}
+
+// ExprString is a toString method for an expression type
+func ExprString(exp ebnf.Expression) string {
+	var res string
+	switch v := exp.(type) {
+	case *ebnf.Option:
+		subExpr := ExprString(v.Body)
+		res = fmt.Sprintf("[ %v ]", subExpr)
+	case *ebnf.Group:
+		subExpr := ExprString(v.Body)
+		res = fmt.Sprintf("( %v )", subExpr)
+	case *ebnf.Repetition:
+		subExpr := ExprString(v.Body)
+		res = fmt.Sprintf("{ %v }", subExpr)
+	case ebnf.Sequence:
+		var subExpr string
+		for i, alt := range v {
+			if i > 0 {
+				subExpr += " | "
+			}
+			fmt.Println("prod", alt)
+			subExpr += ExprString(alt)
+		}
+		res = subExpr
+
+	case ebnf.Alternative:
+		var subExpr string
+		for i, alt := range v {
+			if i > 0 {
+				subExpr += " | "
+			}
+			subExpr += ExprString(alt)
+		}
+		res = subExpr
+
+	case *ebnf.Name:
+		res = v.String
+	case *ebnf.Token:
+		res = fmt.Sprintf("\"%v\"", v.String)
+	default:
+		res = "error"
+		fmt.Println(reflect.TypeOf(v))
+	}
+	return res
+}
+
+func exprChildren(parent ebnf.Expression) []string {
+
+	var children = []string{}
+	switch v := parent.(type) {
+	case ebnf.Alternative:
+		seq := []ebnf.Expression(v)
+		for _, expr := range seq {
+			child := exprChildren(expr)
+			children = append(children, child...)
+		}
+		return children
+	case ebnf.Sequence:
+		seq := []ebnf.Expression(v)
+		for _, expr := range seq {
+			child := exprChildren(expr)
+			children = append(children, child...)
+		}
+		return children
+	case *ebnf.Repetition:
+		return exprChildren(v.Body)
+	case *ebnf.Option:
+		return exprChildren(v.Body)
+	case *ebnf.Group:
+		return exprChildren(v.Body)
+	case *ebnf.Name:
+		return []string{v.String}
+	}
+	return nil
 }
 
 func newG() *G {
 	return &G{
 		open: wrapOpen(),
 	}
+}
+
+// New makes a Grammar
+func New(path, root string) *G {
+	g := newG()
+	g.SentenceRoot(root)
+	g.init(path)
+	return g
 }
 
 func (gram *G) init(path string) {
@@ -90,6 +208,7 @@ func (gram *G) init(path string) {
 	if err != nil {
 		panic(err)
 	}
+	verifyGrammar(grammar, gram.sentenceRoot)
 	gram.gram = grammar
 	gram.lexemes = lowercaseProds(grammar)
 	gram.prods = uppercaseProds(grammar)
@@ -121,4 +240,43 @@ func uppercaseProds(gram ebnf.Grammar) []string {
 		}
 	}
 	return res
+}
+
+// VerifyGrammar checks to make sure that the
+// grammar is ebnf.Verified
+func verifyGrammar(g ebnf.Grammar, root string) ebnf.Grammar {
+	if err := ebnf.Verify(g, root); err != nil {
+		panic(err)
+	}
+	return g
+}
+
+// FindEntrantProds returns the lexical productions which are entered
+// by non-lexical productions
+func FindEntrantProds(gram *G) []string {
+	var (
+		entrantSet = map[string]bool{}
+		names      = gram.ProdNames()
+	)
+
+	for _, name := range names {
+		// fetch the production out of the grammar
+		var prod *ebnf.Production = gram.Prod(name)
+		// Now, walk the production and get it's children...
+		children := Children(prod)
+		for _, child := range children {
+			if IsLexeme(child) {
+				// add it to the entrantSet
+				entrantSet[child] = true
+			}
+		}
+	}
+
+	// convert the map into a list
+	var entrantProds = make([]string, 0, len(entrantSet))
+	for name := range entrantSet {
+		entrantProds = append(entrantProds, name)
+	}
+
+	return entrantProds
 }

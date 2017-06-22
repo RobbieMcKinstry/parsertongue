@@ -5,3 +5,13 @@ type Token struct {
 	val string
 	FileLocation
 }
+
+type TokenType int
+
+const (
+	Keyword TokenType = iota
+	ID
+	StringLit
+	NumericLit
+	Operator
+)
