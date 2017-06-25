@@ -5,6 +5,7 @@ go:
 
 install:
     - go get github.com/go-task/task
+    - go install -v github.com/go-task/task
 
 script: 
     - $GOPATH/bin/task test
