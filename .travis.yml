@@ -7,4 +7,4 @@ install:
     - go get github.com/go-task/task
 
 script: 
-    - task test
+    - $GOPATH/bin/task test
