@@ -3,9 +3,12 @@ package parser
 import "sync"
 import "golang.org/x/exp/ebnf"
 
+type Token int
+
 type Parser struct {
 	lexFrames []lexicalFrame
 	in        <-chan Token
+	tokens    []Token
 }
 
 // A lexecical frame stores all of the data associated with a
@@ -13,7 +16,7 @@ type Parser struct {
 type lexicalFrame struct {
 	token Token
 	// each token gets it's own queue of parse frames
-	workingQueue chan ParseFrame
+	workingQueue chan *ParseFrame
 
 	// each token also gets its own frame history
 	// a frame history is a synchronized map...
