@@ -63,9 +63,6 @@ func TestLowercaseProds(t *testing.T) {
 }
 
 func TestEntrantProds(t *testing.T) {
-	// TODO Fix
-	// test the "FindEntrantProds" function
-	// t.Skip()
 	const root, path = "S", "test_fixtures/01.ebnf"
 	var gram = New(path, root)
 	entrants := FindEntrantProds(gram)
