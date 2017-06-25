@@ -1,6 +1,6 @@
 test:
     cmds:
-        - go test -coverprofile=coverage.out ./grammar/...
+        - go test ./grammar/... ./lexer/...
  
 build:
     cmds:

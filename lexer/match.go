@@ -8,7 +8,7 @@ type match struct {
 
 // String converts the match into a string
 func (m match) String() string {
-	return fmt.Sprintf("[%i:%i]", m.start, m.start+width)
+	return fmt.Sprintf("[%d:%d]", m.start, m.start+m.width)
 }
 
 func (m match) Start() int {

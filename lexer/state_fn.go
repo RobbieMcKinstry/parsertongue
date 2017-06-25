@@ -1,3 +1,4 @@
 package lexer
 
-type stateFn func(lex *L, start int, ok chan<- match) stateFn
+// StateFn represents a node in the the NFA.
+type StateFn func(lex *L, start int) (StateFn, int)
