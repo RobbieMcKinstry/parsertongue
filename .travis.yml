@@ -1,6 +1,10 @@
 language: go
 
 go:
-  - master
+    - master
 
-script: go test ./grammar/... ./lexer/...
+install:
+    - go get github.com/go-task/task
+
+script: 
+    - task test
