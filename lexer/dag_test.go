@@ -45,3 +45,23 @@ func TestTokenStateFnYesMatch(t *testing.T) {
 		t.Errorf("Expected no match: found %v", observed)
 	}
 }
+
+func TestTokenStateFnPartialMatch(t *testing.T) {
+
+	var (
+		lex      = new(L)
+		sentence = []byte("go lang")
+		tok      = ebnf.Token{String: "golang"}
+		fn       = lex.makeToken(&tok)
+	)
+	lex.reader = NewBufferScanner(sentence)
+	nextFn, matchLen := fn(lex, 0)
+
+	if observed := nextFn; observed != nil {
+		t.Errorf("Expected %v, found %v", nil, observed)
+	}
+
+	if expected, observed := 0, matchLen; expected != observed {
+		t.Errorf("Expected no match: found %v", observed)
+	}
+}

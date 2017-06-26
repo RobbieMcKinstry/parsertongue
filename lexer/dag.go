@@ -28,7 +28,7 @@ func (lex *L) makeName(name *ebnf.Name) StateFn {
 
 	// look up the name of the production
 	if runeMatcher, ok := prebuilt[name.String]; ok {
-		return makeRuneMatcher(runeMatcher)
+		return lex.makeRuneMatcher(runeMatcher)
 	}
 
 	// else, we have to generate the production from
@@ -38,7 +38,7 @@ func (lex *L) makeName(name *ebnf.Name) StateFn {
 }
 
 // match on a single rune
-func makeRuneMatcher(matcher runeMatcher) StateFn {
+func (lex *L) makeRuneMatcher(matcher runeMatcher) StateFn {
 	return func(lex *L, start int) (StateFn, int) {
 		if matcher(lex.next()) {
 			return nil, 1
@@ -57,9 +57,9 @@ func (lex *L) makeSequence(seq ebnf.Sequence) StateFn {
 
 	return func(lex *L, start int) (StateFn, int) {
 		var size = 0
-		for _, match := range matchers {
+		for i, match := range matchers {
 			next := match.Exhaust(lex, start)
-			if next == 0 {
+			if next == 0 && !isOptional(seq[i]) {
 				return nil, 0
 			}
 			size += next
@@ -149,4 +149,11 @@ func (state StateFn) Exhaust(lex *L, start int) int {
 		fn, pos = fn(lex, pos)
 	}
 	return pos
+}
+
+func isOptional(exp ebnf.Expression) bool {
+	_, optional := exp.(*ebnf.Option)
+	_, repetition := exp.(*ebnf.Repetition)
+
+	return optional || repetition
 }
