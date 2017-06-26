@@ -6,6 +6,8 @@ import (
 	"github.com/RobbieMcKinstry/parsertongue/grammar"
 )
 
+const eof = rune(0)
+
 // L is the lexer
 type L struct {
 	gram   *grammar.G
@@ -48,4 +50,23 @@ func (lex *L) collectProdsByName(names []string) []*ebnf.Production {
 		prods = append(prods, lex.gram.Prod(name))
 	}
 	return prods
+}
+
+// next will return the next rune, returning eof if there is not next rune
+func (lex *L) next() rune {
+	r, _, err := lex.reader.ReadRune()
+	if err != nil {
+		return eof
+	}
+	return r
+}
+
+func (lex *L) peek() rune {
+	r := lex.next()
+	lex.backup()
+	return r
+}
+
+func (lex *L) backup() {
+	lex.reader.UnreadRune()
 }

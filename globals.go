@@ -22,7 +22,5 @@ var (
 		"decimal_digit":  runeMatcher(IsDecimalDigit),
 		"octal_digit":    runeMatcher(IsOctalDigit),
 		"hex_digit":      runeMatcher(IsHexDigit),
-		// TODO need a state function for matching tokens
-		//	"token": ,
 	}
 )

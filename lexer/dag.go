@@ -2,87 +2,131 @@ package lexer
 
 import "golang.org/x/exp/ebnf"
 
-// TODO
 // Convert the expression to a stateFn.
-func toStateFn(exp ebnf.Expression) StateFn {
+func (lex *L) toStateFn(exp ebnf.Expression) StateFn {
 	switch v := exp.(type) {
 	case *ebnf.Option:
-		return makeOption(v)
+		return lex.makeOption(v)
 	case *ebnf.Group:
-		return makeGroup(v)
+		return lex.makeGroup(v)
 	case *ebnf.Repetition:
-		return makeRepetition(v)
+		return lex.makeRepetition(v)
 	case ebnf.Sequence:
-		return makeSequence(v)
+		return lex.makeSequence(v)
 	case ebnf.Alternative:
-		return makeAlternative(v)
+		return lex.makeAlternative(v)
 	case *ebnf.Name:
-		return makeName(v)
+		return lex.makeName(v)
 	case *ebnf.Token:
-		return makeToken(v)
+		return lex.makeToken(v)
 	default:
 		return nil
-
 	}
 }
 
-// TODO impl
-func makeName(name *ebnf.Name) StateFn {
+func (lex *L) makeName(name *ebnf.Name) StateFn {
+
+	// look up the name of the production
+	if runeMatcher, ok := prebuilt[name.String]; ok {
+		return makeRuneMatcher(runeMatcher)
+	}
+
+	// else, we have to generate the production from
+	// it's children according to the grammar.
+	prod := lex.gram.Prod(name.String)
+	return lex.toStateFn(prod.Expr)
+}
+
+// match on a single rune
+func makeRuneMatcher(matcher runeMatcher) StateFn {
 	return func(lex *L, start int) (StateFn, int) {
+		if matcher(lex.next()) {
+			return nil, 1
+		}
+		lex.backup()
 		return nil, 0
 	}
 }
 
-// TODO impl
-func makeSequence(seq ebnf.Sequence) StateFn {
+// Logical AND
+func (lex *L) makeSequence(seq ebnf.Sequence) StateFn {
+	matchers := []StateFn{}
+	for _, exp := range seq {
+		matchers = append(matchers, lex.toStateFn(exp))
+	}
+
 	return func(lex *L, start int) (StateFn, int) {
-		return nil, 0
+		var size = 0
+		for _, match := range matchers {
+			next := match.Exhaust(lex, start)
+			if next == 0 {
+				return nil, 0
+			}
+			size += next
+		}
+		return nil, size
 	}
 }
 
-// TODO impl
-func makeAlternative(alt ebnf.Alternative) StateFn {
+// Logical OR
+func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
+
+	matchers := []StateFn{}
+	for _, exp := range alt {
+		matchers = append(matchers, lex.toStateFn(exp))
+	}
+
+	// TODO this can be converted to a parallel implementation
 	return func(lex *L, start int) (StateFn, int) {
-		return nil, 0
+
+		var max = 0
+		for _, match := range matchers {
+			width := match.Exhaust(lex, start)
+			if width > max {
+				max = width
+			}
+		}
+
+		return nil, max
 	}
 }
 
-// TODO impl
-func makeToken(tok *ebnf.Token) StateFn {
+func (lex *L) makeToken(tok *ebnf.Token) StateFn {
+	// for a token, read in the runes and check to make sure they match.
+	literal := tok.String
+
 	return func(lex *L, start int) (StateFn, int) {
-		return nil, 0
+
+		for _, char := range literal {
+			nextRune := lex.next()
+			if nextRune != char {
+				return nil, 0
+			}
+		}
+
+		return nil, len(literal)
 	}
 }
 
-// TODO impl
-func makeGroup(group *ebnf.Group) StateFn {
-	return func(lex *L, start int) (StateFn, int) {
-		return nil, 0
-	}
+func (lex *L) makeGroup(group *ebnf.Group) StateFn {
+	return lex.toStateFn(group.Body)
 }
 
-func makeOption(op *ebnf.Option) StateFn {
-	var (
-		state   StateFn
-		match   int
-		exp     = op.Body
-		matcher = toStateFn(exp)
-	)
+func (lex *L) makeOption(op *ebnf.Option) StateFn {
+	var exp = op.Body
+	var matcher = lex.toStateFn(exp)
 
 	next := func(lex *L, start int) (StateFn, int) {
-		state, match = matcher, start
-		for state != nil {
-			state, match = state(lex, start)
-		}
+		match := matcher.Exhaust(lex, start)
 		return nil, match
 	}
 	return next
 }
 
-func makeRepetition(rep *ebnf.Repetition) StateFn {
+func (lex *L) makeRepetition(rep *ebnf.Repetition) StateFn {
 	var (
 		exp     = rep.Body
-		matcher = toStateFn(exp)
+		matcher = lex.toStateFn(exp)
 	)
 
 	var next = func(lex *L, start int) (StateFn, int) {
@@ -90,7 +134,6 @@ func makeRepetition(rep *ebnf.Repetition) StateFn {
 		for i := size; i < 0; i = matcher.Exhaust(lex, i) {
 			size += i
 		}
-		// TODO do I return nil here? I'm not sure…
 		return nil, size
 	}
 	return next
