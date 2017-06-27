@@ -130,11 +130,15 @@ func (lex *L) makeRepetition(rep *ebnf.Repetition) StateFn {
 	)
 
 	var next = func(lex *L, start int) (StateFn, int) {
-		size := matcher.Exhaust(lex, start)
-		for i := size; i < 0; i = matcher.Exhaust(lex, i) {
-			size += i
+		var total = 0
+
+		for size := matcher.Exhaust(lex.Clone(), start); size > 0; size = matcher.Exhaust(lex.Clone(), start+size) {
+
+			total += size
+			lex.advance(size)
 		}
-		return nil, size
+
+		return nil, total
 	}
 	return next
 }

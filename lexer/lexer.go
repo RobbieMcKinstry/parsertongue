@@ -79,3 +79,9 @@ func (lex *L) peek() rune {
 func (lex *L) backup() {
 	lex.reader.UnreadRune()
 }
+
+func (lex *L) advance(pos int) {
+	for i := 0; i < pos; i++ {
+		lex.next()
+	}
+}
