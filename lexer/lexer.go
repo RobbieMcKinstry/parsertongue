@@ -25,6 +25,15 @@ func NewLexer(gram *grammar.G, data []byte, tokenStream chan<- Token) *L {
 	}
 }
 
+// Clone this lexer
+func (lex *L) Clone() *L {
+	next := new(L)
+	next.gram = lex.gram
+	next.reader = lex.reader.Clone()
+	next.out = lex.out
+	return next
+}
+
 func lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 	channel := make(chan Token)
 	lexer := NewLexer(gram, data, channel)
