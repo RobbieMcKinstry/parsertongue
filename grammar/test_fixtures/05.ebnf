@@ -1,0 +1,5 @@
+Party = Fighter Mage | Fighter Ranger [bard] .
+Fighter = "fighter" .
+Mage = "mage" .
+Ranger = "ranger" .
+bard = "bard" .

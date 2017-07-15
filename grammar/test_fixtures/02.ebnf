@@ -1,0 +1,4 @@
+S = foo bar baz.
+foo = "hello" | "goodbye" .
+bar = "world" | "my love" .
+baz = "!" | "." .

@@ -84,7 +84,7 @@ func IsLexeme(name string) bool {
 }
 
 // Children returns the list of names reprenting the children
-// of this tree node
+// of this tree node. It does not allow repeats (so it returns a set).
 func Children(parent *ebnf.Production) []string {
 	fmt.Println(Stringify(parent))
 	if parent == nil {
@@ -153,6 +153,32 @@ func ExprString(exp ebnf.Expression) string {
 	return res
 }
 
+// setAppend will append elem to the slice
+// iff elem is not already in the slice. Otherwise, it
+// functions just like the built-in append.
+func setAppend(in []string, elems ...string) (out []string) {
+	out = in
+	for _, elem := range elems {
+		if !strContains(out, elem) {
+			out = append(out, elem)
+		}
+	}
+	return out
+}
+
+// strContains returns true if the string elem is contained
+// in the slice
+func strContains(slice []string, elem string) bool {
+	var res = false
+	for _, contained := range slice {
+		if elem == contained {
+			res = true
+			break
+		}
+	}
+	return res
+}
+
 func exprChildren(parent ebnf.Expression) []string {
 
 	var children = []string{}
@@ -161,14 +187,14 @@ func exprChildren(parent ebnf.Expression) []string {
 		seq := []ebnf.Expression(v)
 		for _, expr := range seq {
 			child := exprChildren(expr)
-			children = append(children, child...)
+			children = setAppend(children, child...)
 		}
 		return children
 	case ebnf.Sequence:
 		seq := []ebnf.Expression(v)
 		for _, expr := range seq {
 			child := exprChildren(expr)
-			children = append(children, child...)
+			children = setAppend(children, child...)
 		}
 		return children
 	case *ebnf.Repetition:
@@ -179,6 +205,12 @@ func exprChildren(parent ebnf.Expression) []string {
 		return exprChildren(v.Body)
 	case *ebnf.Name:
 		return []string{v.String}
+
+	// Ranges are all literals, and thus should not
+	// be counted as children, since they are ternimal
+	// symbols
+	case *ebnf.Range:
+		return []string{}
 	}
 	return nil
 }

@@ -1,0 +1,3 @@
+N = Number | Number  "+" empty .
+Number = "1" .
+empty = .
