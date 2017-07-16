@@ -106,3 +106,47 @@ func TestRepetitionTrue(t *testing.T) {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
 }
+
+func TestPrebuild1(t *testing.T) {
+	var sentence = "\n"
+	var lex = buildLexer(sentence)
+	var newline = ebnf.Name{String: "newline"}
+	var fn = lex.makeName(&newline)
+
+	matchLen := fn.Exhaust(lex, 0)
+	if expected, observed := len(sentence), matchLen; expected != observed {
+		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
+	}
+}
+
+func TestPrebuild2(t *testing.T) {
+	var sentence = "foo"
+	var lex = buildLexer(sentence)
+	var newline = ebnf.Name{String: "newline"}
+	var fn = lex.makeName(&newline)
+
+	matchLen := fn.Exhaust(lex, 0)
+	if expected, observed := 0, matchLen; expected != observed {
+		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
+	}
+}
+
+// Smash my face against the keyboard to generate a random
+// Unicode string.
+func TestPrebuild3(t *testing.T) {
+	var sentence = "foo123“…æå∂ƒ©ƒ®´†´ß√˜∫†˙µ…¬†"
+	var lex = buildLexer(sentence)
+	var unicodeChar = ebnf.Name{String: "unicode_char"}
+	var fn = lex.makeName(&unicodeChar)
+
+	for _, character := range sentence {
+		matchLen := fn.Exhaust(lex.Clone(), 0)
+		if expected, observed := 1, matchLen; expected != observed {
+			t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
+		}
+		r := lex.next()
+		if r != character {
+			t.Errorf("Mismatched characters: %v != %v", r, character)
+		}
+	}
+}

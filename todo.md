@@ -1,6 +1,9 @@
-# Testing the Lexer
+# Test the Lex Package
 
-Add more fixture tests to grammar/grammar\_test
+- Generate the coverage profile for the lexer
+- Find the uncovered functions
+- Add tests (including fixtures)
+- Add the top level code to lex the entrant prods from the DAG
 
 # Migrate the Lexer into the lex package
 
