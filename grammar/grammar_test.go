@@ -63,7 +63,7 @@ func TestLowercaseProds(t *testing.T) {
 }
 
 func TestEntrantProds01(t *testing.T) {
-	const root, path = "S", "test_fixtures/01.ebnf"
+	const root, path = "S", "../fixtures/01.ebnf"
 	var gram = New(path, root)
 	entrants := FindEntrantProds(gram)
 
@@ -83,7 +83,7 @@ func TestEntrantProds01(t *testing.T) {
 }
 
 func TestEntrantProds02(t *testing.T) {
-	const root, path = "S", "test_fixtures/02.ebnf"
+	const root, path = "S", "../fixtures/02.ebnf"
 	var gram = New(path, root)
 	entrants := FindEntrantProds(gram)
 
@@ -117,7 +117,7 @@ func TestEntrantProds02(t *testing.T) {
 }
 
 func TestEntrantProds03(t *testing.T) {
-	const root, path = "N", "test_fixtures/03.ebnf"
+	const root, path = "N", "../fixtures/03.ebnf"
 	var gram = New(path, root)
 	entrants := FindEntrantProds(gram)
 
@@ -137,7 +137,7 @@ func TestEntrantProds03(t *testing.T) {
 }
 
 func TestEntrantProds04(t *testing.T) {
-	const root, path = "Integer", "test_fixtures/04.ebnf"
+	const root, path = "Integer", "../fixtures/04.ebnf"
 	var gram = New(path, root)
 	entrants := FindEntrantProds(gram)
 
@@ -157,7 +157,7 @@ func TestEntrantProds04(t *testing.T) {
 }
 
 func TestEntrantProds05(t *testing.T) {
-	const root, path = "Party", "test_fixtures/05.ebnf"
+	const root, path = "Party", "../fixtures/05.ebnf"
 	var gram = New(path, root)
 	entrants := FindEntrantProds(gram)
 
@@ -177,7 +177,7 @@ func TestEntrantProds05(t *testing.T) {
 }
 
 func TestChildren01(t *testing.T) {
-	const root, path = "S", "test_fixtures/01.ebnf"
+	const root, path = "S", "../fixtures/01.ebnf"
 
 	var (
 		gram     = New(path, root)
@@ -202,7 +202,7 @@ func TestChildren01(t *testing.T) {
 }
 
 func TestChildren02(t *testing.T) {
-	const root, path = "S", "test_fixtures/02.ebnf"
+	const root, path = "S", "../fixtures/02.ebnf"
 
 	var (
 		gram     = New(path, root)
@@ -240,7 +240,7 @@ func TestChildren02(t *testing.T) {
 }
 
 func TestChildren03(t *testing.T) {
-	const root, path = "N", "test_fixtures/03.ebnf"
+	const root, path = "N", "../fixtures/03.ebnf"
 
 	var (
 		gram     = New(path, root)
@@ -271,7 +271,7 @@ func TestChildren03(t *testing.T) {
 }
 
 func TestChildren04(t *testing.T) {
-	const root, path = "Integer", "test_fixtures/04.ebnf"
+	const root, path = "Integer", "../fixtures/04.ebnf"
 
 	var (
 		gram          = New(path, root)
@@ -318,7 +318,7 @@ func TestChildren04(t *testing.T) {
 }
 
 func TestChildren05(t *testing.T) {
-	const root, path = "Party", "test_fixtures/05.ebnf"
+	const root, path = "Party", "../fixtures/05.ebnf"
 
 	var (
 		gram     = New(path, root)

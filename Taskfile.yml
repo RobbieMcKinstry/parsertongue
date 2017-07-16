@@ -1,11 +1,22 @@
 test:
     cmds:
         - go test ./grammar/... ./lexer/...
+test-v:
+    cmds:
+        - go test -v ./grammar/... ./lexer/...
  
 build:
     cmds:
         - go generate ./...
         - go build .
+
+cover-grammar:
+    cmds:
+        - go test -coverprofile=coverage.out ./grammar/...
+
+cover-lexer:
+    cmds:
+        - go test -coverprofile=coverage.out ./lexer/...
 
 view-cover:
     cmds:
