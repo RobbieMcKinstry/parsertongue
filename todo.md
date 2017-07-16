@@ -5,6 +5,16 @@
 - Add tests (including fixtures)
 - Add the top level code to lex the entrant prods from the DAG
 
+- Refactor the tests to DRY up reused patterns
+- Switch to using -1 for failed matches instead of 0
+    This will remove a bug in Sequences where optionals are
+    nested inside of groups.
+
+    ( [ nonterminal ] )
+
+    This, for example, will be marked as non-matching
+    when nonterminal is not matched, but it should match.
+
 # Migrate the Lexer into the lex package
 
 - Test the `FileLocation.String()` function

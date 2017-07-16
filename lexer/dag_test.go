@@ -1,6 +1,7 @@
 package lexer
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/RobbieMcKinstry/parsertongue/grammar"
@@ -59,6 +60,24 @@ func TestTokenStateFnPartialMatch(t *testing.T) {
 	}
 
 	if expected, observed := 0, matchLen; expected != observed {
+		t.Errorf("Expected no match: found %v", observed)
+	}
+}
+
+func TestTokenStateSubstring(t *testing.T) {
+
+	var (
+		lex = buildLexer("abcdefg")
+		tok = ebnf.Token{String: "abcd"}
+		fn  = lex.makeToken(&tok)
+	)
+	nextFn, matchLen := fn(lex, 0)
+
+	if observed := nextFn; observed != nil {
+		t.Errorf("Expected %v, found %v", nil, observed)
+	}
+
+	if expected, observed := len("abcd"), matchLen; expected != observed {
 		t.Errorf("Expected no match: found %v", observed)
 	}
 }
@@ -189,6 +208,87 @@ func TestMakeName(t *testing.T) {
 	// now, match the next word…
 	matchLen = fnMage.Exhaust(lex.Clone(), 0)
 	if expected, observed := len(mage), matchLen; expected != observed {
+		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
+	}
+}
+
+func TestSequence(t *testing.T) {
+
+	const (
+		root, path = "s", "../fixtures/06.ebnf"
+		sentence   = "foodcoma"
+	)
+
+	var (
+		gram = grammar.New(path, root)
+		lex  = buildLexer(sentence)
+	)
+	lex.gram = gram
+	production := gram.Prod(root)
+
+	var fn = lex.toStateFn(production.Expr)
+	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	if expected, observed := len(sentence), matchLen; expected != observed {
+		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
+	}
+}
+
+func TestAlternative(t *testing.T) {
+	fmt.Println("Beginning alternative test 1")
+	const (
+		root, path = "Party", "../fixtures/05.ebnf"
+		sentence   = "fightermage"
+	)
+
+	var (
+		gram = grammar.New(path, root)
+		lex  = buildLexer(sentence)
+	)
+	lex.gram = gram
+	var production = gram.Prod(root)
+	var fn = lex.toStateFn(production.Expr)
+	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	if expected, observed := len(sentence), matchLen; expected != observed {
+		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
+	}
+}
+
+func TestAlternative2(t *testing.T) {
+	fmt.Println("Beginning alternative test 2")
+	const (
+		root, path = "Party", "../fixtures/05.ebnf"
+		sentence   = "fighterranger"
+	)
+
+	var (
+		gram = grammar.New(path, root)
+		lex  = buildLexer(sentence)
+	)
+	lex.gram = gram
+	var production = gram.Prod(root)
+	var fn = lex.toStateFn(production.Expr)
+	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	if expected, observed := len(sentence), matchLen; expected != observed {
+		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
+	}
+}
+func TestAlternative3(t *testing.T) {
+	t.Skip()
+	fmt.Println("Beginning alternative test 3")
+	const (
+		root, path = "Party", "../fixtures/05.ebnf"
+		sentence   = "fighterrangerbard"
+	)
+
+	var (
+		gram = grammar.New(path, root)
+		lex  = buildLexer(sentence)
+	)
+	lex.gram = gram
+	var production = gram.Prod(root)
+	var fn = lex.toStateFn(production.Expr)
+	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	if expected, observed := len(sentence), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
 }

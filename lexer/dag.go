@@ -1,6 +1,10 @@
 package lexer
 
-import "golang.org/x/exp/ebnf"
+import (
+	"fmt"
+
+	"golang.org/x/exp/ebnf"
+)
 
 // Convert the expression to a stateFn.
 func (lex *L) toStateFn(exp ebnf.Expression) StateFn {
@@ -50,19 +54,22 @@ func (lex *L) makeRuneMatcher(matcher runeMatcher) StateFn {
 
 // Logical AND
 func (lex *L) makeSequence(seq ebnf.Sequence) StateFn {
+
 	matchers := []StateFn{}
 	for _, exp := range seq {
 		matchers = append(matchers, lex.toStateFn(exp))
 	}
 
 	return func(lex *L, start int) (StateFn, int) {
+		fmt.Printf("Running sequence %v\n", seq)
 		var size = 0
 		for i, match := range matchers {
-			next := match.Exhaust(lex, start)
+			next := match.Exhaust(lex.Clone(), start)
 			if next == 0 && !isOptional(seq[i]) {
 				return nil, 0
 			}
 			size += next
+			lex.advance(next)
 		}
 		return nil, size
 	}
@@ -81,7 +88,7 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 
 		var max = 0
 		for _, match := range matchers {
-			width := match.Exhaust(lex, start)
+			width := match.Exhaust(lex.Clone(), start)
 			if width > max {
 				max = width
 			}

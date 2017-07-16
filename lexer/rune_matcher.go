@@ -14,6 +14,7 @@ var prebuilt = map[string]runeMatcher{
 	"decimal_digit":  runeMatcher(IsDecimalDigit),
 	"octal_digit":    runeMatcher(IsOctalDigit),
 	"hex_digit":      runeMatcher(IsHexDigit),
+	"whitespace":     runeMatcher(IsWhitespace),
 }
 
 // IsNewline checks if the rune is a newline char
@@ -51,4 +52,21 @@ func IsHexDigit(r rune) bool {
 	return ('0' <= r && r <= '9') ||
 		('A' <= r && r <= 'F') ||
 		('a' <= r && r <= 'f')
+}
+
+// IsWhitespace returns true if the rune is a
+//Unicode whitespace character
+func IsWhitespace(r rune) bool {
+	return unicode.IsSpace(r)
+}
+
+// Whitespace is a stateFn which matches all
+// whitespace in a row, returning the number of
+// runes which are consecutive whitespace
+func Whitespace(lex *L, start int) (StateFn, int) {
+	var count int
+	for count = 0; IsWhitespace(lex.peek()); count++ {
+		lex.next()
+	}
+	return nil, count
 }
