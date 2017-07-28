@@ -57,26 +57,36 @@ func (lex *L) run() {
 	fmt.Println("Making state fns")
 	stateFns := lex.makeStateFns(prods)
 
-	fmt.Println("StateFns created. Finding Max len")
-	prod, count := lex.maxProds(prods, stateFns)
-	fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
-	lexeme := make([]rune, 0, count)
-	// capture the lexeme in a string
-	for i := 0; i < count; i++ {
-		lexeme = append(lexeme, lex.next())
-	}
+	fmt.Println("StateFns created. Beginning to lex all prods")
 
-	tok := Token{
-		typ: prod,
-		val: string(lexeme),
-	}
+	for {
+		prod, count := lex.maxProds(prods, stateFns)
+		if count == -1 {
+			fmt.Println("No prods match. Breaking…")
+			close(lex.out)
+			break
+		}
 
-	lex.out <- tok
+		fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
+		lexeme := make([]rune, 0, count)
+		// capture the lexeme in a string
+		for i := 0; i < count; i++ {
+			lexeme = append(lexeme, lex.next())
+		}
 
-	// Now, exhaust any remaining whitespace.
-	lex.clearWhitespace()
-	if lex.peek() == eof {
-		close(lex.out)
+		tok := Token{
+			typ: prod,
+			val: string(lexeme),
+		}
+
+		lex.out <- tok
+
+		// Now, exhaust any remaining whitespace.
+		lex.clearWhitespace()
+		if lex.peek() == eof {
+			close(lex.out)
+			break
+		}
 	}
 }
 

@@ -86,9 +86,10 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 	// TODO this can be converted to a parallel implementation
 	return func(lex *L) (StateFn, int) {
 
-		var max = 0
+		var max = -1
 		for _, match := range matchers {
 			width := match.Exhaust(lex.Clone())
+
 			if width > max {
 				max = width
 			}
