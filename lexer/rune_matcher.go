@@ -63,7 +63,7 @@ func IsWhitespace(r rune) bool {
 // Whitespace is a stateFn which matches all
 // whitespace in a row, returning the number of
 // runes which are consecutive whitespace
-func Whitespace(lex *L, start int) (StateFn, int) {
+func Whitespace(lex *L) (StateFn, int) {
 	var count int
 	for count = 0; IsWhitespace(lex.peek()); count++ {
 		lex.next()

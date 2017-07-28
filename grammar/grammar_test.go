@@ -74,11 +74,8 @@ func TestEntrantProds01(t *testing.T) {
 		)
 	}
 
-	if expected, observed := "hello", entrants[0]; expected != observed {
-		t.Errorf("Incorrect entrant production: expected %v, found %v",
-			expected,
-			observed,
-		)
+	if ok := containsString(entrants, "hello"); !ok {
+		t.Errorf("Failed to find entrant production \"%v\"", "hello")
 	}
 }
 
@@ -94,25 +91,13 @@ func TestEntrantProds02(t *testing.T) {
 		)
 	}
 
-	if expected, observed := "foo", entrants[0]; expected != observed {
-		t.Errorf("Incorrect entrant production: expected %v, found %v",
-			expected,
-			observed,
-		)
-	}
-
-	if expected, observed := "bar", entrants[1]; expected != observed {
-		t.Errorf("Incorrect entrant production: expected %v, found %v",
-			expected,
-			observed,
-		)
-	}
-
-	if expected, observed := "baz", entrants[2]; expected != observed {
-		t.Errorf("Incorrect entrant production: expected %v, found %v",
-			expected,
-			observed,
-		)
+	entrantsExpected := []string{"foo", "bar", "baz"}
+	for _, expected := range entrantsExpected {
+		if ok := containsString(entrants, expected); !ok {
+			t.Errorf("Failed to find entrant production \"%v\"",
+				expected,
+			)
+		}
 	}
 }
 
@@ -128,10 +113,10 @@ func TestEntrantProds03(t *testing.T) {
 		)
 	}
 
-	if expected, observed := "empty", entrants[0]; expected != observed {
-		t.Errorf("Incorrect entrant production: expected %v, found %v",
-			expected,
-			observed,
+	entrant := "empty"
+	if ok := containsString(entrants, entrant); !ok {
+		t.Errorf("Failed to find entrant production \"%v\"",
+			entrant,
 		)
 	}
 }
@@ -148,10 +133,10 @@ func TestEntrantProds04(t *testing.T) {
 		)
 	}
 
-	if expected, observed := "empty", entrants[0]; expected != observed {
-		t.Errorf("Incorrect entrant production: expected %v, found %v",
-			expected,
-			observed,
+	entrant := "empty"
+	if ok := containsString(entrants, entrant); !ok {
+		t.Errorf("Failed to find entrant production \"%v\"",
+			entrant,
 		)
 	}
 }
@@ -167,13 +152,13 @@ func TestEntrantProds05(t *testing.T) {
 			observed,
 		)
 	}
-
-	if expected, observed := "bard", entrants[0]; expected != observed {
-		t.Errorf("Incorrect entrant production: expected %v, found %v",
-			expected,
-			observed,
+	entrant := "bard"
+	if ok := containsString(entrants, entrant); !ok {
+		t.Errorf("Failed to find entrant production \"%v\"",
+			entrant,
 		)
 	}
+
 }
 
 func TestChildren01(t *testing.T) {

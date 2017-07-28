@@ -43,12 +43,12 @@ func (lex *L) makeName(name *ebnf.Name) StateFn {
 
 // match on a single rune
 func (lex *L) makeRuneMatcher(matcher runeMatcher) StateFn {
-	return func(lex *L, start int) (StateFn, int) {
+	return func(lex *L) (StateFn, int) {
 		if matcher(lex.next()) {
 			return nil, 1
 		}
 		lex.backup()
-		return nil, 0
+		return nil, -1
 	}
 }
 
@@ -60,13 +60,13 @@ func (lex *L) makeSequence(seq ebnf.Sequence) StateFn {
 		matchers = append(matchers, lex.toStateFn(exp))
 	}
 
-	return func(lex *L, start int) (StateFn, int) {
+	return func(lex *L) (StateFn, int) {
 		fmt.Printf("Running sequence %v\n", seq)
 		var size = 0
 		for i, match := range matchers {
-			next := match.Exhaust(lex.Clone(), start)
+			next := match.Exhaust(lex.Clone())
 			if next == 0 && !isOptional(seq[i]) {
-				return nil, 0
+				return nil, -1
 			}
 			size += next
 			lex.advance(next)
@@ -84,11 +84,11 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 	}
 
 	// TODO this can be converted to a parallel implementation
-	return func(lex *L, start int) (StateFn, int) {
+	return func(lex *L) (StateFn, int) {
 
 		var max = 0
 		for _, match := range matchers {
-			width := match.Exhaust(lex.Clone(), start)
+			width := match.Exhaust(lex.Clone())
 			if width > max {
 				max = width
 			}
@@ -102,12 +102,12 @@ func (lex *L) makeToken(tok *ebnf.Token) StateFn {
 	// for a token, read in the runes and check to make sure they match.
 	literal := tok.String
 
-	return func(lex *L, start int) (StateFn, int) {
+	return func(lex *L) (StateFn, int) {
 
 		for _, char := range literal {
 			nextRune := lex.next()
 			if nextRune != char {
-				return nil, 0
+				return nil, -1
 			}
 		}
 
@@ -123,8 +123,11 @@ func (lex *L) makeOption(op *ebnf.Option) StateFn {
 	var exp = op.Body
 	var matcher = lex.toStateFn(exp)
 
-	next := func(lex *L, start int) (StateFn, int) {
-		match := matcher.Exhaust(lex, start)
+	next := func(lex *L) (StateFn, int) {
+		match := matcher.Exhaust(lex)
+		if match == -1 {
+			return nil, 0
+		}
 		return nil, match
 	}
 	return next
@@ -136,10 +139,10 @@ func (lex *L) makeRepetition(rep *ebnf.Repetition) StateFn {
 		matcher = lex.toStateFn(exp)
 	)
 
-	var next = func(lex *L, start int) (StateFn, int) {
+	var next = func(lex *L) (StateFn, int) {
 		var total = 0
 
-		for size := matcher.Exhaust(lex.Clone(), start); size > 0; size = matcher.Exhaust(lex.Clone(), start+size) {
+		for size := matcher.Exhaust(lex.Clone()); size > 0; size = matcher.Exhaust(lex.Clone()) {
 
 			total += size
 			lex.advance(size)
@@ -152,14 +155,16 @@ func (lex *L) makeRepetition(rep *ebnf.Repetition) StateFn {
 
 // Exhaust runs the statefn until it is nil, returning the
 // final result
-func (state StateFn) Exhaust(lex *L, start int) int {
-	pos := start
-	fn := state
+func (state StateFn) Exhaust(lex *L) int {
 
-	for fn != nil {
-		fn, pos = fn(lex, pos)
+	size := 0
+	for pos, fn := 0, state; fn != nil; size += pos {
+		fn, pos = fn(lex)
+		if pos == -1 {
+			return -1
+		}
 	}
-	return pos
+	return size
 }
 
 func isOptional(exp ebnf.Expression) bool {

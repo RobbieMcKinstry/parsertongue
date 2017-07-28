@@ -312,3 +312,14 @@ func FindEntrantProds(gram *G) []string {
 
 	return entrantProds
 }
+
+func containsString(slice []string, contents string) bool {
+	res := false
+	for _, str := range slice {
+		if str == contents {
+			res = true
+			break
+		}
+	}
+	return res
+}

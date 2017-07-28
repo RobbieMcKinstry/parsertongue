@@ -1,6 +1,8 @@
 package lexer
 
 import (
+	"fmt"
+
 	"golang.org/x/exp/ebnf"
 
 	"github.com/RobbieMcKinstry/parsertongue/grammar"
@@ -36,7 +38,9 @@ func (lex *L) Clone() *L {
 
 func lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 	channel := make(chan Token)
+	fmt.Println("Making a new lexer")
 	lexer := NewLexer(gram, data, channel)
+	fmt.Println("Calling run in its own goroutine")
 	go lexer.run()
 	return lexer, channel
 }
@@ -44,13 +48,72 @@ func lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 // run will calculate the lexeme DAG and generate lexemes of those types
 func (lex *L) run() {
 	// First, first the entrant productions...
+	fmt.Println("Making entrant prods")
 	entrantNames := grammar.FindEntrantProds(lex.gram)
 	// collect the actual productions from the grammar
+	fmt.Println("Collecting prods by name")
 	prods := lex.collectProdsByName(entrantNames)
-	_ = prods
 
-	// now, for each of these prods, which which one produces the longest result...
-	// TODO
+	fmt.Println("Making state fns")
+	stateFns := lex.makeStateFns(prods)
+
+	fmt.Println("StateFns created. Finding Max len")
+	prod, count := lex.maxProds(prods, stateFns)
+	fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
+	lexeme := make([]rune, 0, count)
+	// capture the lexeme in a string
+	for i := 0; i < count; i++ {
+		lexeme = append(lexeme, lex.next())
+	}
+
+	tok := Token{
+		typ: prod,
+		val: string(lexeme),
+	}
+
+	lex.out <- tok
+
+	// Now, exhaust any remaining whitespace.
+	lex.clearWhitespace()
+	if lex.peek() == eof {
+		close(lex.out)
+	}
+}
+
+func (lex *L) makeStateFns(prods []*ebnf.Production) []StateFn {
+	fns := make([]StateFn, 0, len(prods))
+	for _, prod := range prods {
+		fns = append(fns, lex.toStateFn(prod.Expr))
+	}
+	return fns
+}
+
+// maxProds returns the prod with the longest count.
+func (lex *L) maxProds(prods []*ebnf.Production, fns []StateFn) (*ebnf.Production, int) {
+	counts := make([]int, 0, len(prods))
+	for _, fn := range fns {
+		count := fn.Exhaust(lex.Clone())
+		counts = append(counts, count)
+	}
+
+	index := max(counts)
+	return prods[index], counts[index]
+
+}
+
+func max(slice []int) int {
+	maxIndex := 0
+	for i, val := range slice {
+		if val > slice[maxIndex] {
+			maxIndex = i
+		}
+	}
+	return maxIndex
+}
+
+func (lex *L) clearWhitespace() {
+	var count = StateFn(Whitespace).Exhaust(lex.Clone())
+	lex.advance(count)
 }
 
 func (lex *L) collectProdsByName(names []string) []*ebnf.Production {

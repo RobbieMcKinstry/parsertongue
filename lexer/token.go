@@ -1,17 +1,10 @@
 package lexer
 
+import "golang.org/x/exp/ebnf"
+
+// Token is a single lexeme
 type Token struct {
-	typ TokenType
+	typ *ebnf.Production
 	val string
 	FileLocation
 }
-
-type TokenType int
-
-const (
-	Keyword TokenType = iota
-	ID
-	StringLit
-	NumericLit
-	Operator
-)

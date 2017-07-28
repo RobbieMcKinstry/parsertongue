@@ -10,7 +10,7 @@ func TestDigitMatcher(t *testing.T) {
 	lex.reader = NewBufferScanner(sentence)
 
 	for range sentence {
-		nextFn, matchLen := fn(lex.Clone(), 0)
+		nextFn, matchLen := fn(lex.Clone())
 		if observed := nextFn; observed != nil {
 			t.Errorf("Expected %v, found %v", nil, observed)
 		}
@@ -36,12 +36,12 @@ func TestDigitMatcherLetters(t *testing.T) {
 	lex.reader = NewBufferScanner(sentence)
 
 	for range sentence {
-		nextFn, matchLen := fn(lex.Clone(), 0)
+		nextFn, matchLen := fn(lex.Clone())
 		if observed := nextFn; observed != nil {
 			t.Errorf("Expected %v, found %v", nil, observed)
 		}
 
-		if expected, observed := 0, matchLen; expected != observed {
+		if expected, observed := -1, matchLen; expected != observed {
 			t.Errorf("Expected match length %v, found %v", expected, observed)
 		}
 

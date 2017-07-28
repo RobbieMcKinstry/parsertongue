@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/RobbieMcKinstry/parsertongue/grammar"
@@ -16,13 +15,13 @@ func TestTokenStateFnNoMatch(t *testing.T) {
 		tok = ebnf.Token{String: "golang"}
 		fn  = lex.makeToken(&tok)
 	)
-	nextFn, matchLen := fn(lex, 0)
+	nextFn, matchLen := fn(lex)
 
 	if observed := nextFn; observed != nil {
 		t.Errorf("Expected %v, found %v", nil, observed)
 	}
 
-	if expected, observed := 0, matchLen; expected != observed {
+	if expected, observed := -1, matchLen; expected != observed {
 		t.Errorf("Expected no match: found %v", observed)
 	}
 }
@@ -35,7 +34,7 @@ func TestTokenStateFnYesMatch(t *testing.T) {
 		tok      = ebnf.Token{String: sentence}
 		fn       = lex.makeToken(&tok)
 	)
-	nextFn, matchLen := fn(lex, 0)
+	nextFn, matchLen := fn(lex)
 
 	if observed := nextFn; observed != nil {
 		t.Errorf("Expected %v, found %v", nil, observed)
@@ -53,13 +52,13 @@ func TestTokenStateFnPartialMatch(t *testing.T) {
 		tok = ebnf.Token{String: "golang"}
 		fn  = lex.makeToken(&tok)
 	)
-	nextFn, matchLen := fn(lex, 0)
+	nextFn, matchLen := fn(lex)
 
 	if observed := nextFn; observed != nil {
 		t.Errorf("Expected %v, found %v", nil, observed)
 	}
 
-	if expected, observed := 0, matchLen; expected != observed {
+	if expected, observed := -1, matchLen; expected != observed {
 		t.Errorf("Expected no match: found %v", observed)
 	}
 }
@@ -71,7 +70,7 @@ func TestTokenStateSubstring(t *testing.T) {
 		tok = ebnf.Token{String: "abcd"}
 		fn  = lex.makeToken(&tok)
 	)
-	nextFn, matchLen := fn(lex, 0)
+	nextFn, matchLen := fn(lex)
 
 	if observed := nextFn; observed != nil {
 		t.Errorf("Expected %v, found %v", nil, observed)
@@ -88,7 +87,7 @@ func TestOptionalTrue(t *testing.T) {
 	var option = ebnf.Option{Body: &tok}
 	var fn = lex.makeOption(&option)
 
-	nextFn, matchLen := fn(lex, 0)
+	nextFn, matchLen := fn(lex)
 	if observed := nextFn; observed != nil {
 		t.Errorf("Expected %v, found %v", nil, observed)
 	}
@@ -104,7 +103,7 @@ func TestOptionalFalse(t *testing.T) {
 	var option = ebnf.Option{Body: &tok}
 	var fn = lex.makeOption(&option)
 
-	nextFn, matchLen := fn(lex, 0)
+	nextFn, matchLen := fn(lex)
 	if observed := nextFn; observed != nil {
 		t.Errorf("Expected %v, found %v", nil, observed)
 	}
@@ -121,7 +120,7 @@ func TestRepetitionTrue(t *testing.T) {
 	var rep = ebnf.Repetition{Body: &tok}
 	var fn = lex.makeRepetition(&rep)
 
-	matchLen := fn.Exhaust(lex, 0)
+	matchLen := fn.Exhaust(lex)
 
 	if expected, observed := len(sentence), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
@@ -134,7 +133,7 @@ func TestPrebuild1(t *testing.T) {
 	var newline = ebnf.Name{String: "newline"}
 	var fn = lex.makeName(&newline)
 
-	matchLen := fn.Exhaust(lex, 0)
+	matchLen := fn.Exhaust(lex)
 	if expected, observed := len(sentence), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
@@ -146,8 +145,8 @@ func TestPrebuild2(t *testing.T) {
 	var newline = ebnf.Name{String: "newline"}
 	var fn = lex.makeName(&newline)
 
-	matchLen := fn.Exhaust(lex, 0)
-	if expected, observed := 0, matchLen; expected != observed {
+	matchLen := fn.Exhaust(lex)
+	if expected, observed := -1, matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
 }
@@ -161,7 +160,7 @@ func TestPrebuild3(t *testing.T) {
 	var fn = lex.makeName(&unicodeChar)
 
 	for _, character := range sentence {
-		matchLen := fn.Exhaust(lex.Clone(), 0)
+		matchLen := fn.Exhaust(lex.Clone())
 		if expected, observed := 1, matchLen; expected != observed {
 			t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 		}
@@ -191,7 +190,7 @@ func TestMakeName(t *testing.T) {
 	var (
 		fnFighter = lex.makeName(&fighterExpr)
 		fnMage    = lex.makeName(&mageExpr)
-		matchLen  = fnFighter.Exhaust(lex.Clone(), 0)
+		matchLen  = fnFighter.Exhaust(lex.Clone())
 	)
 
 	if expected, observed := len(fighter), matchLen; expected != observed {
@@ -206,7 +205,7 @@ func TestMakeName(t *testing.T) {
 	lex.next()
 
 	// now, match the next word…
-	matchLen = fnMage.Exhaust(lex.Clone(), 0)
+	matchLen = fnMage.Exhaust(lex.Clone())
 	if expected, observed := len(mage), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
@@ -227,14 +226,13 @@ func TestSequence(t *testing.T) {
 	production := gram.Prod(root)
 
 	var fn = lex.toStateFn(production.Expr)
-	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	var matchLen = fn.Exhaust(lex.Clone())
 	if expected, observed := len(sentence), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
 }
 
 func TestAlternative(t *testing.T) {
-	fmt.Println("Beginning alternative test 1")
 	const (
 		root, path = "Party", "../fixtures/05.ebnf"
 		sentence   = "fightermage"
@@ -247,14 +245,13 @@ func TestAlternative(t *testing.T) {
 	lex.gram = gram
 	var production = gram.Prod(root)
 	var fn = lex.toStateFn(production.Expr)
-	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	var matchLen = fn.Exhaust(lex.Clone())
 	if expected, observed := len(sentence), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
 }
 
 func TestAlternative2(t *testing.T) {
-	fmt.Println("Beginning alternative test 2")
 	const (
 		root, path = "Party", "../fixtures/05.ebnf"
 		sentence   = "fighterranger"
@@ -267,14 +264,12 @@ func TestAlternative2(t *testing.T) {
 	lex.gram = gram
 	var production = gram.Prod(root)
 	var fn = lex.toStateFn(production.Expr)
-	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	var matchLen = fn.Exhaust(lex.Clone())
 	if expected, observed := len(sentence), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
 }
 func TestAlternative3(t *testing.T) {
-	t.Skip()
-	fmt.Println("Beginning alternative test 3")
 	const (
 		root, path = "Party", "../fixtures/05.ebnf"
 		sentence   = "fighterrangerbard"
@@ -287,7 +282,7 @@ func TestAlternative3(t *testing.T) {
 	lex.gram = gram
 	var production = gram.Prod(root)
 	var fn = lex.toStateFn(production.Expr)
-	var matchLen = fn.Exhaust(lex.Clone(), 0)
+	var matchLen = fn.Exhaust(lex.Clone())
 	if expected, observed := len(sentence), matchLen; expected != observed {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
