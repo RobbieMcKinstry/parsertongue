@@ -1,3 +1,7 @@
+# Fix the Lexer:
+
+Just create entrant prods for each of the keywords and operators used in non-lexeme productions.
+
 # Test the Lex Package
 
 - Generate the coverage profile for the lexer

@@ -28,6 +28,45 @@ func (lex *L) toStateFn(exp ebnf.Expression) StateFn {
 	}
 }
 
+func stringifyExpr(exp ebnf.Expression) string {
+	switch v := exp.(type) {
+	case *ebnf.Option:
+		return fmt.Sprintf("[%s]", stringifyExpr(v.Body))
+	case *ebnf.Group:
+		return fmt.Sprintf("(%s)", stringifyExpr(v.Body))
+	case *ebnf.Repetition:
+		return fmt.Sprintf("[%s]", stringifyExpr(v.Body))
+	case ebnf.Sequence:
+		strings := make([]string, 0, len(v))
+		// collect the stringified subexpressions
+		for _, exp := range v {
+			strings = append(strings, stringifyExpr(exp))
+		}
+		res := strings[0]
+		for _, str := range strings[1:] {
+			res += fmt.Sprintf(" + %s", str)
+		}
+		return res
+	case ebnf.Alternative:
+		alts := make([]string, 0, len(v))
+		// collect the stringified alternatives
+		for _, exp := range v {
+			alts = append(alts, stringifyExpr(exp))
+		}
+		res := alts[0]
+		for _, str := range alts[1:] {
+			res += fmt.Sprintf(" | %s", str)
+		}
+		return res
+	case *ebnf.Name:
+		return v.String
+	case *ebnf.Token:
+		return fmt.Sprintf("\"%s\"", v.String)
+	default:
+		return "error"
+	}
+}
+
 func (lex *L) makeName(name *ebnf.Name) StateFn {
 
 	// look up the name of the production
@@ -61,11 +100,12 @@ func (lex *L) makeSequence(seq ebnf.Sequence) StateFn {
 	}
 
 	return func(lex *L) (StateFn, int) {
-		fmt.Printf("Running sequence %v\n", seq)
+		fmt.Println("Exploring sequence:")
+		fmt.Println(stringifyExpr(seq))
 		var size = 0
 		for i, match := range matchers {
 			next := match.Exhaust(lex.Clone())
-			if next == 0 && !isOptional(seq[i]) {
+			if next == -1 && !isOptional(seq[i]) {
 				return nil, -1
 			}
 			size += next
@@ -85,6 +125,8 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 
 	// TODO this can be converted to a parallel implementation
 	return func(lex *L) (StateFn, int) {
+		fmt.Println("Exploring alternative:")
+		fmt.Println(stringifyExpr(alt))
 
 		var max = -1
 		for _, match := range matchers {
@@ -94,6 +136,7 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 				max = width
 			}
 		}
+		fmt.Printf("Found max %v\n", max)
 
 		return nil, max
 	}

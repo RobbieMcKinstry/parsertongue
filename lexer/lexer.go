@@ -36,7 +36,8 @@ func (lex *L) Clone() *L {
 	return next
 }
 
-func lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
+// Lex returns the lexer and the token stream
+func Lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 	channel := make(chan Token)
 	fmt.Println("Making a new lexer")
 	lexer := NewLexer(gram, data, channel)
@@ -57,6 +58,18 @@ func (lex *L) run() {
 	fmt.Println("Making state fns")
 	stateFns := lex.makeStateFns(prods)
 
+	// now, combine those state funcs with the state funcs
+	// generated for the token literals found in the
+	// non-lexical productions
+	// TODO not implemented at this time.
+	/*
+		tokenLiterals := lex.gram.FindTokenLiterals()
+		for _, tok := range tokenLiterals {
+			tokenStateFn := lex.makeToken(tok)
+			stateFns = append(stateFns, tokenStateFn)
+		}
+	*/
+
 	fmt.Println("StateFns created. Beginning to lex all prods")
 
 	for {
@@ -76,7 +89,7 @@ func (lex *L) run() {
 
 		tok := Token{
 			typ: prod,
-			val: string(lexeme),
+			Val: string(lexeme),
 		}
 
 		lex.out <- tok
