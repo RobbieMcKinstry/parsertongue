@@ -269,6 +269,7 @@ func TestAlternative2(t *testing.T) {
 		t.Errorf("Unexpected Match length: expected %v but found %v", expected, observed)
 	}
 }
+
 func TestAlternative3(t *testing.T) {
 	const (
 		root, path = "Party", "../fixtures/05.ebnf"

@@ -36,7 +36,8 @@ func (lex *L) Clone() *L {
 	return next
 }
 
-func lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
+// Lex returns the lexer and the token stream
+func Lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 	channel := make(chan Token)
 	fmt.Println("Making a new lexer")
 	lexer := NewLexer(gram, data, channel)
@@ -57,26 +58,48 @@ func (lex *L) run() {
 	fmt.Println("Making state fns")
 	stateFns := lex.makeStateFns(prods)
 
-	fmt.Println("StateFns created. Finding Max len")
-	prod, count := lex.maxProds(prods, stateFns)
-	fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
-	lexeme := make([]rune, 0, count)
-	// capture the lexeme in a string
-	for i := 0; i < count; i++ {
-		lexeme = append(lexeme, lex.next())
-	}
+	// now, combine those state funcs with the state funcs
+	// generated for the token literals found in the
+	// non-lexical productions
+	// TODO not implemented at this time.
+	/*
+		tokenLiterals := lex.gram.FindTokenLiterals()
+		for _, tok := range tokenLiterals {
+			tokenStateFn := lex.makeToken(tok)
+			stateFns = append(stateFns, tokenStateFn)
+		}
+	*/
 
-	tok := Token{
-		typ: prod,
-		val: string(lexeme),
-	}
+	fmt.Println("StateFns created. Beginning to lex all prods")
 
-	lex.out <- tok
+	for {
+		prod, count := lex.maxProds(prods, stateFns)
+		if count == -1 {
+			fmt.Println("No prods match. Breaking…")
+			close(lex.out)
+			break
+		}
 
-	// Now, exhaust any remaining whitespace.
-	lex.clearWhitespace()
-	if lex.peek() == eof {
-		close(lex.out)
+		fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
+		lexeme := make([]rune, 0, count)
+		// capture the lexeme in a string
+		for i := 0; i < count; i++ {
+			lexeme = append(lexeme, lex.next())
+		}
+
+		tok := Token{
+			typ: prod,
+			Val: string(lexeme),
+		}
+
+		lex.out <- tok
+
+		// Now, exhaust any remaining whitespace.
+		lex.clearWhitespace()
+		if lex.peek() == eof {
+			close(lex.out)
+			break
+		}
 	}
 }
 

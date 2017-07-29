@@ -86,7 +86,6 @@ func IsLexeme(name string) bool {
 // Children returns the list of names reprenting the children
 // of this tree node. It does not allow repeats (so it returns a set).
 func Children(parent *ebnf.Production) []string {
-	fmt.Println(Stringify(parent))
 	if parent == nil {
 		fmt.Println("Not supposed to receive a nil element...")
 		return []string{}
@@ -127,7 +126,6 @@ func ExprString(exp ebnf.Expression) string {
 			if i > 0 {
 				subExpr += " | "
 			}
-			fmt.Println("prod", alt)
 			subExpr += ExprString(alt)
 		}
 		res = subExpr
@@ -179,6 +177,7 @@ func strContains(slice []string, elem string) bool {
 	return res
 }
 
+// TODO include tokens
 func exprChildren(parent ebnf.Expression) []string {
 
 	var children = []string{}
@@ -240,7 +239,8 @@ func (gram *G) init(path string) {
 	if err != nil {
 		panic(err)
 	}
-	verifyGrammar(grammar, gram.sentenceRoot)
+	// TODO consider removing this line for good.
+	// verifyGrammar(grammar, gram.sentenceRoot)
 	gram.gram = grammar
 	gram.lexemes = lowercaseProds(grammar)
 	gram.prods = uppercaseProds(grammar)
@@ -311,6 +311,58 @@ func FindEntrantProds(gram *G) []string {
 	}
 
 	return entrantProds
+}
+
+// FindTokenLiterals collects the literal tokens in the non-lexical
+// productions
+func (gram *G) FindTokenLiterals() []*ebnf.Token {
+	var names = gram.ProdNames()
+	var tokenSet = map[string]*ebnf.Token{}
+	var tokenLiterals = []*ebnf.Token{}
+
+	for _, name := range names {
+		// fetch the production out of the grammar
+		var prod *ebnf.Production = gram.Prod(name)
+		// Now, walk the production and get it's tokens...
+		children := extractTokens(prod.Expr)
+		for _, child := range children {
+			tokenSet[child.String] = child
+		}
+	}
+
+	for _, token := range tokenSet {
+		tokenLiterals = append(tokenLiterals, token)
+	}
+	return tokenLiterals
+}
+
+func extractTokens(expr ebnf.Expression) []*ebnf.Token {
+	tokens := []*ebnf.Token{}
+	switch v := expr.(type) {
+	case ebnf.Alternative:
+		seq := []ebnf.Expression(v)
+		for _, expr := range seq {
+			tokenList := extractTokens(expr)
+			tokens = append(tokens, tokenList...)
+		}
+	case ebnf.Sequence:
+		seq := []ebnf.Expression(v)
+		for _, expr := range seq {
+			tokenList := extractTokens(expr)
+			tokens = append(tokens, tokenList...)
+		}
+	case *ebnf.Repetition:
+		return extractTokens(v.Body)
+	case *ebnf.Option:
+		return extractTokens(v.Body)
+	case *ebnf.Group:
+		return extractTokens(v.Body)
+	case *ebnf.Token:
+		tokens = append(tokens, v)
+	case *ebnf.Name:
+	case *ebnf.Range:
+	}
+	return tokens
 }
 
 func containsString(slice []string, contents string) bool {
