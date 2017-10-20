@@ -100,8 +100,6 @@ func (lex *L) makeSequence(seq ebnf.Sequence) StateFn {
 	}
 
 	return func(lex *L) (StateFn, int) {
-		fmt.Println("Exploring sequence:")
-		fmt.Println(stringifyExpr(seq))
 		var size = 0
 		for i, match := range matchers {
 			next := match.Exhaust(lex.Clone())
@@ -125,8 +123,6 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 
 	// TODO this can be converted to a parallel implementation
 	return func(lex *L) (StateFn, int) {
-		fmt.Println("Exploring alternative:")
-		fmt.Println(stringifyExpr(alt))
 
 		var max = -1
 		for _, match := range matchers {
@@ -136,7 +132,6 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 				max = width
 			}
 		}
-		fmt.Printf("Found max %v\n", max)
 
 		return nil, max
 	}
@@ -150,6 +145,7 @@ func (lex *L) makeToken(tok *ebnf.Token) StateFn {
 
 		for _, char := range literal {
 			nextRune := lex.next()
+
 			if nextRune != char {
 				return nil, -1
 			}
