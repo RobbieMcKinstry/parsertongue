@@ -132,6 +132,29 @@ func TestRun2Example1(t *testing.T) {
 	}
 }
 
+func TestSimpleGolang(t *testing.T) {
+	const root, path = "SourceFile", "../fixtures/golang_augmented.ebnf"
+	var sentence = []byte(`package main
+
+	var x int`)
+
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	var count = 0
+	var expectedTokens = []string{"package", "main", "var", "x", "int"}
+	for token := range out {
+		fmt.Println(token.Val)
+		if expected, observed := expectedTokens[count], token.Val; expected != observed {
+			printTokenError(t, expected, observed)
+		}
+		count++
+	}
+}
+
+func printTokenError(t *testing.T, expected, observed string) {
+	t.Fatalf("Expected token \"%v\" but found \"%v\"", expected, observed)
+}
+
 func TestRunGolang(t *testing.T) {
 	t.Skip()
 	const root, path = "SourceFile", "../fixtures/golang_semi.ebnf"
