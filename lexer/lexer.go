@@ -46,41 +46,87 @@ func Lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 	return lexer, channel
 }
 
-// run will calculate the lexeme DAG and generate lexemes of those types
-func (lex *L) run() {
-	// First, first the entrant productions...
-	fmt.Println("Making entrant prods")
+func (lex *L) findEntrantProds() []string {
 	entrantNames := grammar.FindEntrantProds(lex.gram)
+	printEntrantProds(entrantNames)
+
+	return entrantNames
+}
+
+func printEntrantProds(entrantNames []string) {
+	fmt.Println("Entrant Prods:")
+	for _, prod := range entrantNames {
+		fmt.Printf("\t%v\n", prod)
+	}
+}
+
+func (lex *L) entrantStateFns() []StateFn {
+	// First, first the entrant productions...
+	entrantNames := lex.findEntrantProds()
+
 	// collect the actual productions from the grammar
 	fmt.Println("Collecting prods by name")
 	prods := lex.collectProdsByName(entrantNames)
 
 	fmt.Println("Making state fns")
-	stateFns := lex.makeStateFns(prods)
+	return lex.makeStateFns(prods)
+}
 
+func (lex *L) tokenStateFns() []StateFn {
+
+	var fns []StateFn
+	tokenLiterals := lex.gram.FindTokenLiterals()
+	printTokens(tokenLiterals)
+
+	for _, tok := range tokenLiterals {
+		tokenStateFn := lex.makeToken(tok)
+		fns = append(fns, tokenStateFn)
+	}
+	return fns
+}
+
+func printTokens(toks []*ebnf.Token) {
+	fmt.Println("Tokens:")
+	for _, tok := range toks {
+		fmt.Printf("\t%v\n", tok.String)
+	}
+}
+
+// run will calculate the lexeme DAG and generate lexemes of those types
+func (lex *L) run() {
+	entrantStateFns := lex.entrantStateFns()
+	tokenStateFns := lex.tokenStateFns()
+
+	var stateFns []StateFn
+	stateFns = append(stateFns, entrantStateFns...)
+	stateFns = append(stateFns, tokenStateFns...)
+
+	entrantNames := lex.findEntrantProds()
+	prods := lex.collectProdsByName(entrantNames)
 	// now, combine those state funcs with the state funcs
 	// generated for the token literals found in the
 	// non-lexical productions
 	// TODO not implemented at this time.
-	/*
-		tokenLiterals := lex.gram.FindTokenLiterals()
-		for _, tok := range tokenLiterals {
-			tokenStateFn := lex.makeToken(tok)
-			stateFns = append(stateFns, tokenStateFn)
-		}
-	*/
-
 	fmt.Println("StateFns created. Beginning to lex all prods")
 
 	for {
+		lex.clearWhitespace()
 		prod, count := lex.maxProds(prods, stateFns)
+		var isTokenLiteral = false
 		if count == -1 {
 			fmt.Println("No prods match. Breaking…")
 			close(lex.out)
 			break
+		} else if prod == nil {
+			// Then this is token literal
+			isTokenLiteral = true
 		}
 
-		fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
+		if isTokenLiteral {
+			fmt.Printf("Make len is %v of type %s\n", count, "token")
+		} else {
+			fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
+		}
 		lexeme := make([]rune, 0, count)
 		// capture the lexeme in a string
 		for i := 0; i < count; i++ {
@@ -88,9 +134,11 @@ func (lex *L) run() {
 		}
 
 		tok := Token{
-			typ: prod,
-			Val: string(lexeme),
+			typ:      prod,
+			Val:      string(lexeme),
+			IsLexeme: isTokenLiteral,
 		}
+		fmt.Printf("Found token %v\n", string(lexeme))
 
 		lex.out <- tok
 
@@ -113,15 +161,19 @@ func (lex *L) makeStateFns(prods []*ebnf.Production) []StateFn {
 
 // maxProds returns the prod with the longest count.
 func (lex *L) maxProds(prods []*ebnf.Production, fns []StateFn) (*ebnf.Production, int) {
-	counts := make([]int, 0, len(prods))
+	counts := make([]int, 0, len(fns))
 	for _, fn := range fns {
 		count := fn.Exhaust(lex.Clone())
 		counts = append(counts, count)
 	}
 
 	index := max(counts)
-	return prods[index], counts[index]
+	if index >= len(prods) {
+		// then this is a lexical production.
+		return nil, counts[index]
+	}
 
+	return prods[index], counts[index]
 }
 
 func max(slice []int) int {

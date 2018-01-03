@@ -3,6 +3,7 @@ package lexer
 import (
 	"fmt"
 	"io/ioutil"
+	"strings"
 	"testing"
 
 	"github.com/RobbieMcKinstry/parsertongue/grammar"
@@ -39,7 +40,10 @@ func TestRun1Example1(t *testing.T) {
 			t.Errorf("Expected to receive the string 'foo' but found %v", token.Val)
 		}
 		if token.typ != gram.Prod("S") {
-			t.Error("Expected to receive the production 'S'")
+			t.Errorf(
+				"Expected to receive the production 'S'\n Found type %v\n",
+				token.typ,
+			)
 		}
 	}
 }
@@ -132,6 +136,47 @@ func TestRun2Example1(t *testing.T) {
 	}
 }
 
+func TestRunSentinel1(t *testing.T) {
+	t.Skip()
+	const root, path = "SourceFile", "../fixtures/sentinel.ebnf"
+	var sentence = []byte(sentinelProgram)
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	var toks = []Token{}
+	for token := range out {
+		fmt.Println(token.Val)
+		toks = append(toks, token)
+	}
+
+	if expected, observed := 7, len(toks); expected > observed {
+		t.Fatalf("Expected %v, got %v tokens instead.\n", expected, observed)
+	}
+
+	fmt.Println("Made it this far!")
+	if expected, observed := "import", toks[0].Val; expected != observed {
+		t.Fatalf("Expected %v, got token %v", expected, observed)
+	}
+	fmt.Println("Made it this far!")
+	if expected, observed := `"sockaddr"`, toks[1].Val; expected != observed {
+		t.Fatalf("Expected %v, got token %v", expected, observed)
+	}
+	if expected, observed := "cidrcheck", toks[2].Val; expected != observed {
+		t.Fatalf("Expected %v, got token %v", expected, observed)
+	}
+	if expected, observed := "=", toks[3].Val; expected != observed {
+		t.Fatalf("Expected %v, got token %v", expected, observed)
+	}
+	if expected, observed := "rule", toks[4].Val; expected != observed {
+		t.Fatalf("Expected %v, got token %v", expected, observed)
+	}
+	if expected, observed := "{", toks[5].Val; expected != observed {
+		t.Fatalf("Expected %v, got token %v", expected, observed)
+	}
+	if expected, observed := "sockaddr", toks[6].Val; expected != observed {
+		t.Fatalf("Expected %v, got token %v", expected, observed)
+	}
+}
+
 func TestRunGolang(t *testing.T) {
 	t.Skip()
 	const root, path = "SourceFile", "../fixtures/golang_semi.ebnf"
@@ -146,7 +191,16 @@ func TestRunGolang(t *testing.T) {
 		count++
 		fmt.Println(token.Val)
 	}
-	if count < 200 {
-		t.Fatal("There are definitely more than 200 tokens in this file.")
-	}
 }
+
+var sentinelProgram = strings.TrimSpace(`
+import "sockaddr"
+
+cidrcheck = rule {
+	sockaddr.is_contained(request.connection.remote_addr, "10.20.0.0/16")
+}
+
+ping_valid = rule {
+	mfa.methods.ping.valid
+}
+`)

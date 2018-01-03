@@ -4,6 +4,9 @@ test:
 test-v:
     cmds:
         - go test -v ./grammar/... ./lexer/...
+test-sentinel:
+    cmds:
+        - go test -v -run TestRunSentinel1 ./lexer/...
  
 build:
     cmds:
