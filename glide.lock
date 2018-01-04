@@ -1,8 +1,0 @@
-hash: 5c78f16a6d3096d618a3a703d16ff822e9361f73b5d1cef2e22b955c8b9294b7
-updated: 2017-02-10T21:18:14.023684976-05:00
-imports:
-- name: golang.org/x/exp
-  version: 1451a5b113d33219d0e5389971c83f1d712e09a9
-  subpackages:
-  - ebnf
-testImports: []

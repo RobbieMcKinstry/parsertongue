@@ -25,6 +25,20 @@ func TestCollectProds(t *testing.T) {
 	}
 }
 
+func TestLiteralExample1(t *testing.T) {
+	const root, path = "S", "../fixtures/string_literal.ebnf"
+	var stringLit = `"this is not hello world"`
+	var sentence = []byte(stringLit)
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	fmt.Println("Testing literal example.")
+	for val := range out {
+		if expected, observed := val.Val, stringLit; expected != observed {
+			t.Fatalf("Expected %v but found %v", expected, observed)
+		}
+	}
+}
+
 func TestRun1Example1(t *testing.T) {
 	const root, path = "S", "../fixtures/01.ebnf"
 	var sentence = []byte("foo")
@@ -38,8 +52,11 @@ func TestRun1Example1(t *testing.T) {
 		if token.Val != "foo" {
 			t.Errorf("Expected to receive the string 'foo' but found %v", token.Val)
 		}
-		if token.typ != gram.Prod("S") {
-			t.Error("Expected to receive the production 'S'")
+		if token.typ != nil {
+			t.Errorf("Expected a nil type but found a value")
+		}
+		if !token.IsLexemeLiteral {
+			t.Errorf("Expected IsLexemeLiteral to be true.")
 		}
 	}
 }
@@ -55,7 +72,7 @@ func TestRun1Example2(t *testing.T) {
 			t.Error("Too many tokens received!")
 		}
 		if token.Val != "hello" {
-			t.Errorf("Expected to receive the string 'foo' but found %v", token.Val)
+			t.Errorf("Expected to receive the string 'hello' but found %v", token.Val)
 		}
 		if token.typ != gram.Prod("hello") {
 			t.Errorf(
@@ -130,6 +147,59 @@ func TestRun2Example1(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestSimpleGolang(t *testing.T) {
+	const root, path = "SourceFile", "../fixtures/golang_augmented.ebnf"
+	var sentence = []byte(`package main
+
+	var x int`)
+
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	var count = 0
+	var expectedTokens = []string{"package", "main", "var", "x", "int"}
+	for token := range out {
+		fmt.Println(token.Val)
+		if expected, observed := expectedTokens[count], token.Val; expected != observed {
+			printTokenError(t, expected, observed)
+		}
+		count++
+	}
+	if expected, observed := len(expectedTokens), count; expected != observed {
+		t.Fatalf("Expected %v tokens but only found %v tokens", expected, observed)
+	}
+}
+
+func TestSimpleGolang2(t *testing.T) {
+	t.Skip()
+	const root, path = "SourceFile", "../fixtures/golang_augmented.ebnf"
+	var sentence = []byte(`package main
+	import "fmt"
+
+	func main() {
+		fmt.Println("hello world")
+	}`)
+
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	var count = 0
+	var expectedTokens = []string{"package", "main", "import",
+		"fmt", "func", "main", "(", ")", "{", "fmt", ".", "Println", "(", "hello world", ")", "}"}
+	for token := range out {
+		fmt.Println(token.Val)
+		if expected, observed := expectedTokens[count], token.Val; expected != observed {
+			printTokenError(t, expected, observed)
+		}
+		count++
+	}
+	if expected, observed := len(expectedTokens), count; expected != observed {
+		t.Fatalf("Expected %v tokens but only found %v tokens", expected, observed)
+	}
+}
+
+func printTokenError(t *testing.T, expected, observed string) {
+	t.Fatalf("Expected token \"%v\" but found \"%v\"", expected, observed)
 }
 
 func TestRunGolang(t *testing.T) {

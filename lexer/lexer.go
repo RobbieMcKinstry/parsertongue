@@ -62,37 +62,39 @@ func (lex *L) run() {
 	// generated for the token literals found in the
 	// non-lexical productions
 	// TODO not implemented at this time.
-	/*
-		tokenLiterals := lex.gram.FindTokenLiterals()
-		for _, tok := range tokenLiterals {
-			tokenStateFn := lex.makeToken(tok)
-			stateFns = append(stateFns, tokenStateFn)
-		}
-	*/
+	tokenLiterals := lex.gram.FindTokenLiterals()
+	for _, tok := range tokenLiterals {
+		tokenStateFn := lex.makeToken(tok)
+		stateFns = append(stateFns, tokenStateFn)
+	}
 
 	fmt.Println("StateFns created. Beginning to lex all prods")
 
 	for {
+		var token = Token{}
+
 		prod, count := lex.maxProds(prods, stateFns)
 		if count == -1 {
 			fmt.Println("No prods match. Breaking…")
 			close(lex.out)
 			break
 		}
+		if prod == nil {
+			token.IsLexemeLiteral = true
+			fmt.Printf("Make len is %v of type 'lexeme literal'", count)
+		} else {
+			token.typ = prod
+			fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
+		}
 
-		fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)
 		lexeme := make([]rune, 0, count)
 		// capture the lexeme in a string
 		for i := 0; i < count; i++ {
 			lexeme = append(lexeme, lex.next())
 		}
 
-		tok := Token{
-			typ: prod,
-			Val: string(lexeme),
-		}
-
-		lex.out <- tok
+		token.Val = string(lexeme)
+		lex.out <- token
 
 		// Now, exhaust any remaining whitespace.
 		lex.clearWhitespace()
@@ -112,6 +114,9 @@ func (lex *L) makeStateFns(prods []*ebnf.Production) []StateFn {
 }
 
 // maxProds returns the prod with the longest count.
+// FIXME: RETURNS NIL IF THE PRODUCTION IS AN ENTRANT LEXICAL LITERAL
+// A more robust solution is to have an interface type that either
+// returns a production OR it returns a lexeme literal.
 func (lex *L) maxProds(prods []*ebnf.Production, fns []StateFn) (*ebnf.Production, int) {
 	counts := make([]int, 0, len(prods))
 	for _, fn := range fns {
@@ -120,8 +125,11 @@ func (lex *L) maxProds(prods []*ebnf.Production, fns []StateFn) (*ebnf.Productio
 	}
 
 	index := max(counts)
-	return prods[index], counts[index]
-
+	var production *ebnf.Production
+	if index < len(prods) {
+		production = prods[index]
+	}
+	return production, counts[index]
 }
 
 func max(slice []int) int {

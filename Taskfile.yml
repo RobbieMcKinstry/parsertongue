@@ -7,7 +7,7 @@ test-v:
  
 build:
     cmds:
-        - go generate ./...
+        # - go generate ./...
         - go build .
 
 cover-grammar:
@@ -25,3 +25,15 @@ view-cover:
 browser-cover:
     cmds:
         - go tool cover -html=coverage.out
+
+test-golang:
+    cmds:
+        - go test -v -run TestSimpleGolang ./lexer
+
+test-golang2:
+    cmds:
+        - go test -v -run TestSimpleGolang2 ./lexer
+
+test-lit:
+    cmds:
+        - go test -v -run TestLiteralExample1 ./lexer
