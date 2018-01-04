@@ -33,3 +33,7 @@ test-golang:
 test-golang2:
     cmds:
         - go test -v -run TestSimpleGolang2 ./lexer
+
+test-lit:
+    cmds:
+        - go test -v -run TestLiteralExample1 ./lexer

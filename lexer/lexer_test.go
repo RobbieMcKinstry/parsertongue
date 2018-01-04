@@ -26,7 +26,6 @@ func TestCollectProds(t *testing.T) {
 }
 
 func TestLiteralExample1(t *testing.T) {
-	t.Skip()
 	const root, path = "S", "../fixtures/string_literal.ebnf"
 	var stringLit = `"this is not hello world"`
 	var sentence = []byte(stringLit)

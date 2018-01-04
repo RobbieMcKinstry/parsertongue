@@ -145,7 +145,6 @@ func (lex *L) makeToken(tok *ebnf.Token) StateFn {
 
 		for _, char := range literal {
 			nextRune := lex.next()
-
 			if nextRune != char {
 				return nil, -1
 			}
@@ -196,7 +195,6 @@ func (lex *L) makeRepetition(rep *ebnf.Repetition) StateFn {
 // Exhaust runs the statefn until it is nil, returning the
 // final result
 func (state StateFn) Exhaust(lex *L) int {
-
 	size := 0
 	for pos, fn := 0, state; fn != nil; size += pos {
 		fn, pos = fn(lex)

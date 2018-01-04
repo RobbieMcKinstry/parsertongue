@@ -4,3 +4,4 @@ raw_string_lit         = "`" { unicode_char | newline } "`" .
 interpreted_string_lit = `"` { unicode_value } `"` .
 unicode_value          = unicode_char .
 unicode_char           = /* an arbitrary Unicode code point except newline */ .
+newline                = /* encoded */ .

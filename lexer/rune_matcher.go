@@ -15,6 +15,7 @@ var prebuilt = map[string]runeMatcher{
 	"octal_digit":    runeMatcher(IsOctalDigit),
 	"hex_digit":      runeMatcher(IsHexDigit),
 	"whitespace":     runeMatcher(IsWhitespace),
+	"eof":            runeMatcher(IsEOF),
 }
 
 // IsNewline checks if the rune is a newline char
@@ -22,9 +23,14 @@ func IsNewline(r rune) bool {
 	return r == '\n'
 }
 
+// IsEOF returns true if the rune is the end of file rune: rune(0)
+func IsEOF(r rune) bool {
+	return r == eof
+}
+
 // IsUnicodeChar checks if the rune is a unicode char
 func IsUnicodeChar(r rune) bool {
-	return !IsNewline(r)
+	return !IsNewline(r) && !IsEOF(r)
 }
 
 // IsUnicodeDigit checks if the rune is a digit
