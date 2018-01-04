@@ -24,7 +24,7 @@ func (lex *L) toStateFn(exp ebnf.Expression) StateFn {
 	case *ebnf.Token:
 		return lex.makeToken(v)
 	default:
-		return nil
+		panic("No such implementation")
 	}
 }
 

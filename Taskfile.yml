@@ -29,3 +29,7 @@ browser-cover:
 test-golang:
     cmds:
         - go test -v -run TestSimpleGolang ./lexer
+
+test-golang2:
+    cmds:
+        - go test -v -run TestSimpleGolang2 ./lexer
