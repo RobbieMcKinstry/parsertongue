@@ -1,6 +1,7 @@
 package grammar
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -63,10 +64,10 @@ func (gram *G) ProdNames() []string {
 func (gram *G) Prod(name string) *ebnf.Production {
 	prod, ok := gram.gram[name]
 	if !ok {
-		fmt.Println("Failed to receive the expected production")
-		fmt.Printf("Prod is: %v\n", prod)
-		fmt.Printf("Name is: %v\n", name)
-		fmt.Printf("Gram is: %v\n", gram.gram)
+		fmt.Println("No such production in map")
+		fmt.Printf("Returning: %v\n", prod)
+		fmt.Printf("Requestion production: %v\n", name)
+		fmt.Printf("Full grammar: %v\n", gram.gram)
 		return nil
 	}
 	return prod
@@ -144,6 +145,8 @@ func ExprString(exp ebnf.Expression) string {
 		res = v.String
 	case *ebnf.Token:
 		res = fmt.Sprintf("\"%v\"", v.String)
+	case *ebnf.Production:
+		panic("Production found in the middle of an expression")
 	default:
 		res = "error"
 		fmt.Println(reflect.TypeOf(v))
@@ -315,10 +318,9 @@ func FindEntrantProds(gram *G) []string {
 
 // FindTokenLiterals collects the literal tokens in the non-lexical
 // productions
-func (gram *G) FindTokenLiterals() []*ebnf.Token {
+func (gram *G) FindTokenLiterals() map[string]*ebnf.Token {
 	var names = gram.ProdNames()
 	var tokenSet = map[string]*ebnf.Token{}
-	var tokenLiterals = []*ebnf.Token{}
 
 	for _, name := range names {
 		// fetch the production out of the grammar
@@ -329,13 +331,28 @@ func (gram *G) FindTokenLiterals() []*ebnf.Token {
 			tokenSet[child.String] = child
 		}
 	}
-
-	for _, token := range tokenSet {
-		tokenLiterals = append(tokenLiterals, token)
-	}
-	return tokenLiterals
+	return tokenSet
 }
 
+// FindAllTokenLiterals collects the literal tokens in the non-lexical
+// productions
+func (gram *G) FindAllTokenLiterals() map[string]*ebnf.Token {
+	var tokenSet = map[string]*ebnf.Token{}
+
+	for _, production := range gram.gram {
+		// Now, walk the production and get it's tokens...
+		children := extractTokens(production.Expr)
+		for _, child := range children {
+			tokenSet[child.String] = child
+		}
+	}
+
+	return tokenSet
+}
+
+// Question: why are Alternative and Sequence value types
+// and Repetition, Option, Group, and Token pointer types?
+// Answer: because Alternative and Sequence are slices.
 func extractTokens(expr ebnf.Expression) []*ebnf.Token {
 	tokens := []*ebnf.Token{}
 	switch v := expr.(type) {
@@ -361,6 +378,7 @@ func extractTokens(expr ebnf.Expression) []*ebnf.Token {
 		tokens = append(tokens, v)
 	case *ebnf.Name:
 	case *ebnf.Range:
+		// TODO ranges are usually token literals, aren't they?
 	}
 	return tokens
 }
@@ -374,4 +392,14 @@ func containsString(slice []string, contents string) bool {
 		}
 	}
 	return res
+}
+
+func (gram *G) String() string {
+	var buf bytes.Buffer
+	for _, prod := range gram.gram {
+		productionString := Stringify(prod)
+		buf.WriteString(productionString)
+		buf.WriteString("\n")
+	}
+	return buf.String()
 }
