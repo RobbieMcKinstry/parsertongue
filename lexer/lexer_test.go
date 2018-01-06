@@ -182,6 +182,7 @@ func TestSimpleGolang2(t *testing.T) {
 	}`)
 
 	var gram = grammar.New(path, root)
+	// gram.Clean()
 	var _, out = Lex(gram, sentence)
 	var count = 0
 	var expectedTokens = []string{"package", "main", "import",
@@ -194,6 +195,8 @@ func TestSimpleGolang2(t *testing.T) {
 		count++
 	}
 	if expected, observed := len(expectedTokens), count; expected != observed {
+
+		// fmt.Printf("Here's the grammar:\n%v", gram)
 		t.Fatalf("Expected %v tokens but only found %v tokens", expected, observed)
 	}
 }

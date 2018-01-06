@@ -10,7 +10,7 @@ func TestCleanExample1(t *testing.T) {
 	// Read in a sample grammar.
 	const root, path = "S", "../fixtures/01.ebnf"
 	var gram = New(path, root)
-	gram.clean()
+	gram.Clean()
 
 	// now I should expect to have a production
 	// named "\x200B_lexeme_foo".
@@ -29,7 +29,7 @@ func TestClean2Example1(t *testing.T) {
 	// Read in a sample grammar.
 	const root, path = "S", "../fixtures/01.ebnf"
 	var gram = New(path, root)
-	gram.clean()
+	gram.Clean()
 
 	// now I should NOT expect to have a production
 	// named "\x200B_lexeme_hello".
