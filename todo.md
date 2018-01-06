@@ -1,42 +1,31 @@
-# Fix the Lexer:
+# Golang Progression
 
-Just create entrant prods for each of the keywords and operators used in non-lexeme productions.
+The goal is to make progress on the go lexing.
+The next step is go deeper into lexing strings. Right now we lex half of
+the string definition, and I need to go a little deeper.
+
+- Add string fixtures for the full golang string definition
+
+Next, grab the whole import definition
+
+- Add a fixture for the ImportSpec definition
+
+I need to get Clean working without panicking.
+
+- Uncomment clean() calls and debug the nil pointer.
+
+Then try to run the full golang spec
+
+- Comment the Golang skip step.
 
 # Test the Lex Package
 
 - Generate the coverage profile for the lexer
 - Find the uncovered functions
 - Add tests (including fixtures)
-- Add the top level code to lex the entrant prods from the DAG
 
 - Refactor the tests to DRY up reused patterns
-- Switch to using -1 for failed matches instead of 0
-    This will remove a bug in Sequences where optionals are
-    nested inside of groups.
-
-    ( [ nonterminal ] )
-
-    This, for example, will be marked as non-matching
-    when nonterminal is not matched, but it should match.
-
-# Migrate the Lexer into the lex package
-
-- Test the `FileLocation.String()` function
-- Add helper functions to the token type.
-- Add helper functions to the match type
-- Test very carefully
-- Build the DAG
-    - The DAG consists of nodes:
-        - Each nodes contains the production itself
-        - And the array of state functions needed to match the body
-- Clarify that TokenType type is a real type and stringifies correctly...
-- Write an "AdvanceWhitespace" helper function.
-Write up the low level helper functions for the lexer
 
 # Correct the imports in the parsing package
-
-# Update the toolchain to use Go 1.9 beta 
-
-This is to allow the use of sync.Map and type aliasing.
 
 # Implement the main.go function
