@@ -2,10 +2,10 @@ package lexer
 
 import (
 	"fmt"
-	"io/ioutil"
 	"testing"
 
 	"github.com/RobbieMcKinstry/parsertongue/grammar"
+	"golang.org/x/exp/ebnf"
 )
 
 func TestCollectProds(t *testing.T) {
@@ -98,54 +98,23 @@ func TestRun2Example1(t *testing.T) {
 	var sentence = []byte("goodbye my love!")
 	var gram = grammar.New(path, root)
 	var _, out = Lex(gram, sentence)
+	var expectedTokens = []string{"goodbye", "my love", "!"}
+	var expectedProductions = []*ebnf.Production{
+		gram.Prod("foo"), gram.Prod("bar"), gram.Prod("baz"),
+	}
 	var count = 0
 	for token := range out {
-		if count++; count >= 4 {
+		if count >= 4 {
 			t.Error("Too many tokens received!")
 		}
-		switch count {
-		case 1:
-			if token.Val != "goodbye" {
-				t.Errorf(
-					"Expected \"goodbye\", found \"%v\"",
-					token.Val,
-				)
-			}
-			if token.typ != gram.Prod("foo") {
-				t.Errorf(
-					"Expected to receive the production 'foo', found '%v'",
-					token.typ.Name.String,
-				)
-			}
-
-		case 2:
-			if token.Val != "my love" {
-				t.Errorf(
-					"Expected \"my love\", found \"%v\"",
-					token.Val,
-				)
-			}
-			if token.typ != gram.Prod("bar") {
-				t.Errorf(
-					"Expected to receive the production 'bar', found '%v'",
-					token.typ.Name.String,
-				)
-			}
-
-		case 3:
-			if token.Val != "!" {
-				t.Errorf(
-					"Expected \"!\", found \"%v\"",
-					token.Val,
-				)
-			}
-			if token.typ != gram.Prod("baz") {
-				t.Errorf(
-					"Expected to receive the production 'baz', found '%v'",
-					token.typ.Name.String,
-				)
-			}
+		if expected, observed := expectedTokens[count], token.Val; expected != observed {
+			printTokenError(t, expected, observed)
 		}
+		if expected, observed := expectedProductions[count], token.typ; expected != observed {
+			printProductionError(t, expected, observed)
+		}
+
+		count++
 	}
 }
 
@@ -205,21 +174,9 @@ func printTokenError(t *testing.T, expected, observed string) {
 	t.Fatalf("Expected token \"%v\" but found \"%v\"", expected, observed)
 }
 
-func TestRunGolang(t *testing.T) {
-	t.Skip()
-	const root, path = "SourceFile", "../fixtures/golang_semi.ebnf"
-	var sentence, err = ioutil.ReadFile("lexer_test.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	var gram = grammar.New(path, root)
-	var _, out = Lex(gram, sentence)
-	var count = 0
-	for token := range out {
-		count++
-		fmt.Println(token.Val)
-	}
-	if count < 200 {
-		t.Fatal("There are definitely more than 200 tokens in this file.")
-	}
+func printProductionError(t *testing.T, expected, observed *ebnf.Production) {
+	t.Fatalf(
+		"Expected to receive the production '%v', found '%v'",
+		expected.Name, observed.Name,
+	)
 }
