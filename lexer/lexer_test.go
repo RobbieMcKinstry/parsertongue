@@ -39,6 +39,32 @@ func TestLiteralExample1(t *testing.T) {
 	}
 }
 
+func TestLiteral2Example1(t *testing.T) {
+	const root, path = "S", "../fixtures/string_literal2.ebnf"
+	var stringLit = `"this is not hello world"`
+	var sentence = []byte(stringLit)
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	for val := range out {
+		if expected, observed := val.Val, stringLit; expected != observed {
+			t.Fatalf("Expected %v but found %v", expected, observed)
+		}
+	}
+}
+
+func TestLiteral2Example2(t *testing.T) {
+	const root, path = "S", "../fixtures/string_literal2.ebnf"
+	var stringLit = `"\U200B this is not \"hello world\""`
+	var sentence = []byte(stringLit)
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	for val := range out {
+		if expected, observed := val.Val, stringLit; expected != observed {
+			t.Fatalf("Expected %v but found %v", expected, observed)
+		}
+	}
+}
+
 func TestRun1Example1(t *testing.T) {
 	const root, path = "S", "../fixtures/01.ebnf"
 	var sentence = []byte("foo")
