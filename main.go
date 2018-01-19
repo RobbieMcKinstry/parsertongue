@@ -1,14 +1,12 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
+	"github.com/RobbieMcKinstry/parsertongue/command"
 	"github.com/urfave/cli"
 )
-
-var errTooFewArgs = errors.New("too few arguments")
 
 func main() {
 	app := cli.NewApp()
@@ -22,13 +20,7 @@ func main() {
 			Name:    "serve",
 			Aliases: []string{"s"},
 			Usage:   "parse serve <grammar.ebnf>",
-			Action: func(c *cli.Context) error {
-				if len(c.Args()) < 1 {
-					return errTooFewArgs
-				}
-				fmt.Println("grammar file: ", c.Args().First())
-				return nil
-			},
+			Action:  command.Serve,
 		},
 	}
 
