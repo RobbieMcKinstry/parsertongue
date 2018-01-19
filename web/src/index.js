@@ -40,5 +40,5 @@ class App extends React.Component {
 }
 
 ReactDOM.render(
-  <App/>, document.getElementById('body')
+  <App/>, document.getElementById('react-body')
 );
