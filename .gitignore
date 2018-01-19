@@ -2,3 +2,4 @@ tags
 parsertongue
 vendor
 coverage.out
+web/node_modules
