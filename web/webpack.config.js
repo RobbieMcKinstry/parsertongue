@@ -1,9 +1,16 @@
 const path = require('path');
 const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 const APP_DIR = path.resolve(__dirname, 'src');
+const htmlIndexConfig = {
+    'title': 'Parsertongue',
+    'filename': 'index.html',
+    'inject': 'body',
+    'template': 'index.ejs'
+};
 
-var config = {
+const config = {
       entry: {
           app: APP_DIR + '/index.js',
       },
@@ -12,7 +19,7 @@ var config = {
           path: path.resolve(__dirname, 'dist'),
           filename: '[name].bundle.js',
       },
-      module : {
+      module: {
           loaders : [
               {
                   test : /\.jsx?/,
@@ -20,7 +27,8 @@ var config = {
                   loader : 'babel-loader'
               }
           ]
-      }
+      },
+      plugins: [new HtmlWebpackPlugin(htmlIndexConfig)]
 };
 
 module.exports = config;
