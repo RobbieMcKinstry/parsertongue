@@ -2,4 +2,9 @@ tags
 parsertongue
 vendor
 coverage.out
+
+# don't vendor node deps
 web/node_modules
+
+# remove this bullshit generated file
+command/bindata_assetfs.go

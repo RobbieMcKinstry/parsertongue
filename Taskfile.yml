@@ -6,9 +6,10 @@ test-v:
         - go test -v ./grammar/... ./lexer/...
  
 build:
+    deps: [assets]
     cmds:
         # - go generate ./...
-        - go build .
+        - go install
 
 cover-grammar:
     cmds:
@@ -26,14 +27,7 @@ browser-cover:
     cmds:
         - go tool cover -html=coverage.out
 
-test-golang:
+assets:
     cmds:
-        - go test -v -run TestSimpleGolang ./lexer
-
-test-golang2:
-    cmds:
-        - go test -v -run TestSimpleGolang2 ./lexer
-
-test-lit:
-    cmds:
-        - go test -v -run TestLiteralExample1 ./lexer
+        - go-bindata-assetfs -pkg command ./web/dist/*
+        - mv bindata_assetfs.go command/

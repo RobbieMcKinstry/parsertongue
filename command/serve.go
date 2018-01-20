@@ -15,9 +15,9 @@ func Serve(c *cli.Context) error {
 	if len(c.Args()) < 1 {
 		return errTooFewArgs
 	}
-
+	// fileserver := http.StripPrefix("/dist/", http.FileServer(assetFS()))
+	fileserver := http.FileServer(assetFS())
 	fmt.Println("grammar file: ", c.Args().First())
-	fileserver := http.FileServer(http.Dir("web/dist"))
 	fmt.Println("http://localhost:8080/")
 	err := http.ListenAndServe(":8080", fileserver)
 	return err
