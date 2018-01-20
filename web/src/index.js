@@ -1,12 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Graph } from 'react-d3-graph';
+import $ from 'jquery';
 
 const data = {
     nodes: [
-        {id: 'Harry'},
-        {id: 'Sally'},
-        {id: 'Alice'}
     ],
     links: [
         {source: 'Harry', target: 'Sally'},
@@ -27,12 +25,44 @@ const myConfig = {
 };
 
 
+
 class App extends React.Component {
-    render () {
+
+    constructor(props) {
+        super(props);
+        this.state = {
+            'nodes': [
+                {id: 'Harry'},
+                {id: 'Sally'},
+                {id: 'Alice'}
+            ],
+            'links': []
+        };
+    }
+
+    componentWillMount() {
+        console.log("Mounting");
+        const url = '/grammar';
+        $.getJSON(url, (data)=> {
+            const root = data.root;
+            const grammar = data.grammar;
+            console.log(this);
+            var nodes = [];
+            for(var property in grammar) {
+                nodes.push({
+                    'id': property
+                });
+            }
+            console.log("Nodes " + nodes);
+            this.setState({ nodes, links: []});
+        });
+    }
+
+    render() {
         return (
             <Graph
-                id='graph-id' // id is mandatory, if no id is defined rd3g will throw an error
-                data={data}
+                id='graph-id'
+                data={this.state}
                 config={myConfig}
             />
         );

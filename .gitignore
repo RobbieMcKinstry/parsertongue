@@ -5,6 +5,7 @@ coverage.out
 
 # don't vendor node deps
 web/node_modules
+web/dist
 
 # remove this bullshit generated file
-command/bindata_assetfs.go
+parserhttp/bindata_assetfs.go
