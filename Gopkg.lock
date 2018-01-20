@@ -2,6 +2,12 @@
 
 
 [[projects]]
+  branch = "master"
+  name = "github.com/elazarl/go-bindata-assetfs"
+  packages = ["."]
+  revision = "30f82fa23fd844bd5bb1e5f216db87fd77b5eb43"
+
+[[projects]]
   name = "github.com/urfave/cli"
   packages = ["."]
   revision = "cfb38830724cc34fedffe9a2a29fb54fa9169cd1"
@@ -15,6 +21,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "df5e4d2f222a6fe2600c3eaf25ec8b302856288c3b8e20711ce54c37e4d326cb"
+  inputs-digest = "a9d8b646abaf76bd34223bccfa2940774abe1959cdad7f8ff4523aaffbacb38e"
   solver-name = "gps-cdcl"
   solver-version = 1
