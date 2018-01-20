@@ -1,3 +1,13 @@
+# Grammar Visualization
+
+- Don't send the whole grammar. Send only the production names
+and their children nodes.
+
+- Add edges to the visualization so each production is linked to 
+its child nodes.
+
+- Encode the relationship around those nodes for visualizatoin
+
 # Golang Progression
 
 The goal is to make progress on the go lexing.

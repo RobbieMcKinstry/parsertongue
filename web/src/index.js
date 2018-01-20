@@ -24,17 +24,13 @@ const myConfig = {
     }
 };
 
-
-
 class App extends React.Component {
 
     constructor(props) {
         super(props);
         this.state = {
             'nodes': [
-                {id: 'Harry'},
-                {id: 'Sally'},
-                {id: 'Alice'}
+                { id: 'Harry' }
             ],
             'links': []
         };
@@ -48,13 +44,29 @@ class App extends React.Component {
             const grammar = data.grammar;
             console.log(this);
             var nodes = [];
+            var edges = [];
+
             for(var property in grammar) {
+                console.log(property);
                 nodes.push({
-                    'id': property
+                    'id': property,
+                });
+                let childrenArray = grammar[property];
+                if (childrenArray === null) {
+                    continue;
+                }
+                childrenArray.forEach((name) => {
+                    edges.push({
+                        'source': property,
+                        'target': name
+                    });
                 });
             }
-            console.log("Nodes " + nodes);
-            this.setState({ nodes, links: []});
+            console.log("Nodes");
+            console.log(nodes);
+            console.log("Edges");
+            console.log(edges);
+            this.setState({ nodes, links: edges});
         });
     }
 

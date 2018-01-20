@@ -10,7 +10,7 @@ Statement =
           | FunctionStmt
           | ImportDecl.
 
-IfStmt       = "if" ExpresssionStmt Block [ "else" ( IfStmt | Block ) ] .
+IfStmt       = "if" ExpressionStmt Block [ "else" ( IfStmt | Block ) ] .
 ForStmt      = "for" ExpressionStmt "as" [ identifier "," ] identifier Block .
 ReturnStmt   = "return" ExpressionStmt .
 ImportDecl   = "import" string_lit ["as" identifier] .
@@ -34,6 +34,13 @@ unary_op   = "+" | "-" | "!" | "not" .
 Literal     = BasicLit | ListLit | MapLit | FunctionLit | RuleLit .
 BasicLit    = int_lit | float_lit | string_lit | bool_lit .
 
+RuleLit = RuleExpr .
+FunctionLit    = "func" Function .
+Function       = Parameters FunctionBody .
+FunctionBody   = Block .
+Parameters     = "(" [ IdentifierList [ "," ] ] ")" .
+IdentifierList = identifier { "," identifier } .
+
 bool_lit = "true" | "false" .
 ListLit  = 
     "[" 
@@ -41,12 +48,12 @@ ListLit  =
     "]" .
 
 ElementList      = Element { "," Element } .
-Element          = Literal | Expression .
+Element          = Literal | ExpressionStmt .
 MapLit           = "{" [ KeyedElementList [ "," ] ] "}" .
 KeyedElementList = KeyedElement { "," KeyedElement } .
 KeyedElement     = Element ":" Element .
 
-RuleExpr = "rule" "{" ExprssionStmt "}" .
+RuleExpr = "rule" "{" ExpressionStmt "}" .
 Decorator =
       BinaryExpr
     | Selector
@@ -55,11 +62,11 @@ Decorator =
     | Arguments .
 
 Selector       = "." identifier .
-Index          = "[" Expression "]" .
-Slice          = "[" [ Expression ] ":" [ Expression ] "]" 
-               | "[" [ Expression ] ":" Expression ":" Expression "]" .
+Index          = "[" ExpressionStmt "]" .
+Slice          = "[" [ ExpressionStmt ] ":" [ ExpressionStmt ] "]" 
+               | "[" [ ExpressionStmt ] ":" ExpressionStmt ":" ExpressionStmt "]" .
 
-BinaryExpr = binary_op Expression .
+BinaryExpr = binary_op ExpressionStmt .
 binary_op  = logical_op | set_op | rel_op | add_op | mul_op | else_op .
 logical_op = "and" | "or" | "xor" .
 set_op     = ["not"] ( "contains" | "in" ).
