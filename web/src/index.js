@@ -13,6 +13,8 @@ const data = {
 };
 
 const myConfig = {
+    height: 600,
+    width:  1424,
     nodeHighlightBehavior: true,
     node: {
         color: 'lightgreen',
@@ -28,6 +30,7 @@ class App extends React.Component {
 
     constructor(props) {
         super(props);
+        this.grammarCallback = this.grammarCallback.bind(this);
         this.state = {
             'nodes': [
                 { id: 'Harry' }
@@ -36,38 +39,33 @@ class App extends React.Component {
         };
     }
 
-    componentWillMount() {
-        console.log("Mounting");
-        const url = '/grammar';
-        $.getJSON(url, (data)=> {
-            const root = data.root;
-            const grammar = data.grammar;
-            console.log(this);
-            var nodes = [];
-            var edges = [];
+    grammarCallback(data) {
+        const root = data.root;
+        const grammar = data.grammar;
+        var nodes = [];
+        var edges = [];
 
-            for(var property in grammar) {
-                console.log(property);
-                nodes.push({
-                    'id': property,
-                });
-                let childrenArray = grammar[property];
-                if (childrenArray === null) {
-                    continue;
-                }
-                childrenArray.forEach((name) => {
-                    edges.push({
-                        'source': property,
-                        'target': name
-                    });
-                });
+        Object.keys(grammar).forEach((key) => {
+           nodes.push({
+                id: key,
+            });
+            let childrenArray = grammar[key];
+            if (childrenArray === null) {
+                return;
             }
-            console.log("Nodes");
-            console.log(nodes);
-            console.log("Edges");
-            console.log(edges);
-            this.setState({ nodes, links: edges});
+            childrenArray.forEach((name) => {
+                edges.push({
+                    'source': key,
+                    'target': name
+                });
+            });
         });
+        this.setState({ nodes, links: edges});
+    }
+
+    componentWillMount() {
+        const url = '/grammar';
+        $.getJSON(url, this.grammarCallback);
     }
 
     render() {
