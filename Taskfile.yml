@@ -29,6 +29,7 @@ browser-cover:
 
 assets:
     cmds:
+        -cd web && yarn install
         - cd web && yarn build
         - go-bindata-assetfs -pkg parserhttp ./web/dist/...
         - mv bindata_assetfs.go parserhttp/
