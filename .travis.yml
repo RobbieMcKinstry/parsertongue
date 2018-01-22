@@ -8,9 +8,9 @@ install:
     - go get -u -v github.com/go-task/task/cmd/task
     - go get -u -v github.com/jteeuwen/go-bindata/...
     - go get -u -v github.com/elazarl/go-bindata-assetfs/...
-    - go get -u -v github.com/urfave/cli
-    - go get -u -v golang.org/x/exp/ebnf
+    - go get -u github.com/golang/dep/cmd/dep
 
 script:
+    - dep ensure
     - task build
     - go test ./grammar/... ./lexer/...
