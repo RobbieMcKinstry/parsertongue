@@ -16,6 +16,17 @@ let config = {
     }
 };
 
+class GrammarElem {
+    name: string
+    level: number
+    children: Array<string>
+
+    constructor(name: string, level: number, children: Array<string>) {
+        this.name = name;
+        this.level = level;
+        this.children = children;
+    }
+}
 interface Props {}
 class Node {
     id: string
@@ -39,6 +50,7 @@ export default class Graph extends React.Component {
     state = {
         nodes: new Array<Node>(),
         links: new Array<Edge>(),
+        root: "",
     }
     constructor(props: Props) {
         super(props);
@@ -59,18 +71,20 @@ export default class Graph extends React.Component {
         const grammar = data.grammar;
         var nodes = new Array<Node>();
         var edges = new Array<Edge>();
-        Object.keys(grammar).forEach((key: string) => {
-            nodes.push(new Node(key));
-            var children: Array<string> = grammar[key];
+        grammar.forEach((elemRaw: any) => {
+            const elem = new GrammarElem(elemRaw.Name, elemRaw.Level, elemRaw.Children);
+            nodes.push(new Node(elem.name));
+            var children: Array<string> = elem.children;
             if (children === null) {
                 return;
             }
             children.forEach((name: string) => {
-                edges.push(new Edge(key, name));
+                edges.push(new Edge(elem.name, name));
             });
         });
         this.state.nodes = nodes;
         this.state.links = edges;
+        this.state.root = root;
         this.setState(this.state);
     }
 

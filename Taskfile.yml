@@ -1,15 +1,20 @@
 test:
+    deps: [dependencies]
     cmds:
         - go test ./grammar/... ./lexer/...
 test-v:
+    deps: [dependencies]
     cmds:
         - go test -v ./grammar/... ./lexer/...
  
 build:
-    deps: [assets]
+    deps: [dependencies, assets]
     cmds:
-        # - go generate ./...
         - go install
+
+dependencies:
+    cmds:
+        - dep ensure
 
 cover-grammar:
     cmds:
@@ -29,6 +34,7 @@ browser-cover:
 
 assets:
     cmds:
+        - cd web && yarn install
         - cd web && yarn build
         - go-bindata-assetfs -pkg parserhttp ./web/dist/...
         - mv bindata_assetfs.go parserhttp/
