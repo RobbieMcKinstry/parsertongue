@@ -7,6 +7,26 @@ import (
 )
 
 func TestPackageBlockOfficial(t *testing.T) {
+	const root, path = "SourceFile", "../fixtures/golang_augmented.ebnf"
+	var sentence = []byte(`package main`)
+	var gram = grammar.New(path, root)
+	gram.Clean()
+	var _, out = Lex(gram, sentence)
+	var count = 0
+	var expectedTokens = []string{"package", "main"}
+	for token := range out {
+		expected, observed := expectedTokens[count], token.Val
+		if expected != observed {
+			printTokenError(t, expected, observed)
+		}
+		count++
+	}
+	expected, observed := len(expectedTokens), count
+	if expected != observed {
+		t.Fatalf("Expected %v tokens but only found %v tokens", expected, observed)
+	}
+}
+func TestPackageBlockUnofficial(t *testing.T) {
 	const root, path = "SourceFile", "../fixtures/package_block.ebnf"
 	var sentence = []byte(`package main`)
 	var gram = grammar.New(path, root)
