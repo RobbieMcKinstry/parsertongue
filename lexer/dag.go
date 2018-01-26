@@ -3,11 +3,16 @@ package lexer
 import (
 	"fmt"
 
+	"github.com/RobbieMcKinstry/parsertongue/grammar"
+
 	"golang.org/x/exp/ebnf"
 )
 
 // Convert the expression to a stateFn.
 func (lex *L) toStateFn(exp ebnf.Expression) StateFn {
+
+	fmt.Println("Building state func:")
+	fmt.Println(grammar.ExprString(exp))
 	switch v := exp.(type) {
 	case *ebnf.Option:
 		return lex.makeOption(v)

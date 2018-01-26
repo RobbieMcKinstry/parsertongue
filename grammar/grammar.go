@@ -125,7 +125,7 @@ func ExprString(exp ebnf.Expression) string {
 		var subExpr string
 		for i, alt := range v {
 			if i > 0 {
-				subExpr += " | "
+				subExpr += " ++ "
 			}
 			subExpr += ExprString(alt)
 		}

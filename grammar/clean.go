@@ -90,7 +90,14 @@ func lexemeNameFromLiteral(tok *ebnf.Token) string {
 // it does the act of replacing each of the token in
 // non-lexical productions
 func (gram *G) replaceTokenLiterals(oldToks map[string]*ebnf.Token) {
-	for _, production := range gram.gram {
+	for name, production := range gram.gram {
+		// dont replace tokens in lexemes
+		if IsLexeme(name) {
+			continue
+		}
+		// check special cases:
+		// 1. expr == nil
+		// 2. typeof(expr) == token
 		if productionIsTokenSingleton(production) {
 			continue
 		}
