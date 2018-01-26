@@ -16,10 +16,13 @@ class GrammarElem {
 interface Props {}
 class Node {
     id: string
+    x: number
     y: number
+    level: number
 
-    constructor(id: string) {
+    constructor(id: string, level: number) {
         this.id = id;
+        this.level = level;
     }
 }
 class Edge {
@@ -55,7 +58,7 @@ export default class Graph extends React.Component {
             link: {
                 highlightColor: 'lightblue'
             },
-            staticGraph: false
+            staticGraph: true
         };
     }
    
@@ -68,9 +71,9 @@ export default class Graph extends React.Component {
     constructor(props: Props) {
         super(props);
         this.state.nodes = [
-            new Node("Harry"),
-            new Node("Sally"),
-            new Node("Alice"),
+            new Node("Harry", 1),
+            new Node("Sally", 1),
+            new Node("Alice", 1),
         ];
         this.state.links = [
             new Edge("Harry", "Sally"),
@@ -90,7 +93,7 @@ export default class Graph extends React.Component {
         var nodes = new Array<Node>();
         var edges = new Array<Edge>();
         const grammarElems = grammar.map(this.grammarMapper);
-        grammarElems.forEach((elem : any) => { nodes.push(new Node(elem.name)); });
+        grammarElems.forEach((elem : any) => { nodes.push(new Node(elem.name, elem.level)); });
         grammarElems.forEach((elem : GrammarElem) => {
             if (elem.children === null) {
                 return;
@@ -99,13 +102,20 @@ export default class Graph extends React.Component {
                 edges.push(new Edge(elem.name, name));
             });
         });
-        /*
-        var yPos = 10;
+    
+        let levelCounter = new Map<number, number>();
+
         nodes.map((n) => {
-            n.y = yPos;
-            yPos += 30;
+            if(levelCounter.has(n.level)) {
+                const curr = levelCounter.get(n.level);
+                levelCounter.set(n.level, curr+1);
+                n.x = 100*curr;
+            } else {
+                n.x= 100;
+                levelCounter.set(n.level, 1);
+            }
+            n.y = 30*n.level;
         });
-        */
 
         this.state.nodes = nodes;
         this.state.links = edges;
@@ -115,6 +125,9 @@ export default class Graph extends React.Component {
 
     componentDidMount() {
         this.updateWindowDimensions();
+        // this.state.config.staticGraph = true;
+        // this.setState(this.state);
+
     }
 
     updateWindowDimensions = () => {
@@ -124,6 +137,12 @@ export default class Graph extends React.Component {
         this.state.config.height = height;
         this.setState(this.state);
         window.addEventListener('resize', this.updateWindowDimensions);
+        window.addEventListener('keypress', this.snap);
+    }
+
+    snap = () => {
+        this.state.config.staticGraph = true;
+        this.setState(this.state);
     }
     
     componentWillUnmount() {
@@ -136,11 +155,18 @@ export default class Graph extends React.Component {
     }
 
     render() {
+        if (this.state.root === "") {
+            return (
+                <p>Rendering…</p>
+            );
+        }
         return (
             <GraphLib.Graph
                 id='graph-id'
                 data={this.state}
                 config={this.state.config}
+                // @ts-ignore: Property 'resetNodesPositions' does not exist on type 'Graph'.
+                onClickNode={this.resetNodesPositions}
             />
         );
     }
