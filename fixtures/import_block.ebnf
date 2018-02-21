@@ -1,0 +1,17 @@
+SourceFile             = PackageClause  { ImportDecl  }.
+PackageClause          = "package" PackageName .
+PackageName            = identifier .
+ImportDecl             = "import" ( ImportSpec | "(" { ImportSpec  } ")" ) .
+ImportSpec             = [ "." | PackageName ] ImportPath .
+ImportPath             = string_lit .
+string_lit             = raw_string_lit | interpreted_string_lit .
+raw_string_lit         = "`" { unicode_char | newline } "`" .
+interpreted_string_lit = `"` { unicode_value } `"` .
+unicode_value          = unicode_char .
+identifier             = letter { letter | unicode_digit } .
+
+letter        = unicode_letter | "_" .
+unicode_digit = /* a Unicode code point classified as "Number, decimal digit" */ .
+unicode_char  = /* an arbitrary Unicode code point except newline */ .
+newline       = /* encoded */ .
+unicode_letter = /* a Unicode code point classified as "Letter" */ .

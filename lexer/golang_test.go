@@ -48,10 +48,8 @@ func TestPackageBlockUnofficial(t *testing.T) {
 }
 
 func TestImportBlock(t *testing.T) {
-	t.Skip()
-	const root, path = "S", "../fixtures/import_block.ebnf"
-	var sentence = []byte(`
-	package main
+	const root, path = "SourceFile", "../fixtures/import_block.ebnf"
+	var sentence = []byte(`package main
 	
 	import "hello"
 	`)

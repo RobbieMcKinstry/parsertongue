@@ -56,7 +56,9 @@ func (lex *L) run() {
 	prods := lex.collectProdsByName(entrantNames)
 
 	fmt.Println("Making state fns")
-	stateFns := lex.makeStateFns(prods)
+	var stateFns []StateFn
+	// Add the rest of the state funcs the normal way
+	stateFns = append(stateFns, lex.makeStateFns(prods)...)
 
 	// now, combine those state funcs with the state funcs
 	// generated for the token literals found in the
@@ -67,8 +69,15 @@ func (lex *L) run() {
 		tokenStateFn := lex.makeToken(tok)
 		stateFns = append(stateFns, tokenStateFn)
 	}
-
 	fmt.Println("StateFns created. Beginning to lex all prods")
+
+	// Now, exhaust any initial whitespace.
+	// This is leading whitespace before any token is present.
+	lex.clearWhitespace()
+	if lex.peek() == eof {
+		close(lex.out)
+		return
+	}
 
 	for {
 		var token = Token{}
