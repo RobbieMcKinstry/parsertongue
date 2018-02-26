@@ -1,7 +1,6 @@
 package lexer
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/RobbieMcKinstry/parsertongue/grammar"
@@ -30,8 +29,8 @@ func TestLiteralExample1(t *testing.T) {
 	var stringLit = `"this is not hello world"`
 	var sentence = []byte(stringLit)
 	var gram = grammar.New(path, root)
-	var _, out = Lex(gram, sentence)
-	fmt.Println("Testing literal example.")
+	var lex, out = Lex(gram, sentence)
+	lex.log.Infof("Testing literal example.")
 	for val := range out {
 		if expected, observed := val.Val, stringLit; expected != observed {
 			t.Fatalf("Expected %v but found %v", expected, observed)
@@ -125,11 +124,11 @@ func TestSimpleGolang(t *testing.T) {
 	var x int`)
 
 	var gram = grammar.New(path, root)
-	var _, out = Lex(gram, sentence)
+	var lex, out = Lex(gram, sentence)
 	var count = 0
 	var expectedTokens = []string{"package", "main", "var", "x", "int"}
 	for token := range out {
-		fmt.Println(token.Val)
+		lex.log.Infof(token.Val)
 		if expected, observed := expectedTokens[count], token.Val; expected != observed {
 			printTokenError(t, expected, observed)
 		}
@@ -152,20 +151,18 @@ func TestSimpleGolang2(t *testing.T) {
 
 	var gram = grammar.New(path, root)
 	// gram.Clean()
-	var _, out = Lex(gram, sentence)
+	var lex, out = Lex(gram, sentence)
 	var count = 0
 	var expectedTokens = []string{"package", "main", "import",
 		"fmt", "func", "main", "(", ")", "{", "fmt", ".", "Println", "(", "hello world", ")", "}"}
 	for token := range out {
-		fmt.Println(token.Val)
+		lex.log.Infof(token.Val)
 		if expected, observed := expectedTokens[count], token.Val; expected != observed {
 			printTokenError(t, expected, observed)
 		}
 		count++
 	}
 	if expected, observed := len(expectedTokens), count; expected != observed {
-
-		// fmt.Printf("Here's the grammar:\n%v", gram)
 		t.Fatalf("Expected %v tokens but only found %v tokens", expected, observed)
 	}
 }
