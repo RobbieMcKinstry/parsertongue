@@ -3,6 +3,7 @@ package lexer
 import (
 	"fmt"
 
+	"github.com/RobbieMcKinstry/parsertongue/grammar"
 	"golang.org/x/exp/ebnf"
 )
 
@@ -83,6 +84,7 @@ func (lex *L) makeName(name *ebnf.Name) StateFn {
 // match on a single rune
 func (lex *L) makeRuneMatcher(matcher runeMatcher) StateFn {
 	return func(lex *L) (StateFn, int) {
+		fmt.Printf("Trying to match rune '%c'\n", lex.peek())
 		if matcher(lex.next()) {
 			return nil, 1
 		}
@@ -100,6 +102,7 @@ func (lex *L) makeSequence(seq ebnf.Sequence) StateFn {
 	}
 
 	return func(lex *L) (StateFn, int) {
+		fmt.Printf("Trying sequence\n%v\n", grammar.ExprString(seq))
 		var size = 0
 		for i, match := range matchers {
 			next := match.Exhaust(lex.Clone())
@@ -124,6 +127,7 @@ func (lex *L) makeAlternative(alt ebnf.Alternative) StateFn {
 	// TODO this can be converted to a parallel implementation
 	return func(lex *L) (StateFn, int) {
 
+		fmt.Printf("Trying alternative\n%v\n", grammar.ExprString(alt))
 		var max = -1
 		for _, match := range matchers {
 			width := match.Exhaust(lex.Clone())
@@ -142,6 +146,7 @@ func (lex *L) makeToken(tok *ebnf.Token) StateFn {
 	literal := tok.String
 
 	return func(lex *L) (StateFn, int) {
+		fmt.Printf("Trying token %v on char '%c'\n", grammar.ExprString(tok), lex.peek())
 
 		for _, char := range literal {
 			nextRune := lex.next()
@@ -154,6 +159,7 @@ func (lex *L) makeToken(tok *ebnf.Token) StateFn {
 	}
 }
 
+// TODO check to see if I'm handling groups wrong.
 func (lex *L) makeGroup(group *ebnf.Group) StateFn {
 	return lex.toStateFn(group.Body)
 }
@@ -163,6 +169,7 @@ func (lex *L) makeOption(op *ebnf.Option) StateFn {
 	var matcher = lex.toStateFn(exp)
 
 	next := func(lex *L) (StateFn, int) {
+		fmt.Printf("Trying option\n%v\n", grammar.ExprString(exp))
 		match := matcher.Exhaust(lex)
 		if match == -1 {
 			return nil, 0
@@ -179,6 +186,7 @@ func (lex *L) makeRepetition(rep *ebnf.Repetition) StateFn {
 	)
 
 	var next = func(lex *L) (StateFn, int) {
+		fmt.Printf("Trying repetition\n%v\n", grammar.ExprString(exp))
 		var total = 0
 
 		for size := matcher.Exhaust(lex.Clone()); size > 0; size = matcher.Exhaust(lex.Clone()) {

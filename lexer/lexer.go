@@ -39,9 +39,7 @@ func (lex *L) Clone() *L {
 // Lex returns the lexer and the token stream
 func Lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 	channel := make(chan Token)
-	fmt.Println("Making a new lexer")
 	lexer := NewLexer(gram, data, channel)
-	fmt.Println("Calling run in its own goroutine")
 	go lexer.run()
 	return lexer, channel
 }
@@ -49,13 +47,10 @@ func Lex(gram *grammar.G, data []byte) (*L, <-chan Token) {
 // run will calculate the lexeme DAG and generate lexemes of those types
 func (lex *L) run() {
 	// First, first the entrant productions...
-	fmt.Println("Making entrant prods")
 	entrantNames := grammar.FindEntrantProds(lex.gram)
 	// collect the actual productions from the grammar
-	fmt.Println("Collecting prods by name")
 	prods := lex.collectProdsByName(entrantNames)
 
-	fmt.Println("Making state fns")
 	stateFns := lex.makeStateFns(prods)
 
 	// now, combine those state funcs with the state funcs
@@ -68,20 +63,17 @@ func (lex *L) run() {
 		stateFns = append(stateFns, tokenStateFn)
 	}
 
-	fmt.Println("StateFns created. Beginning to lex all prods")
-
 	for {
 		var token = Token{}
 
 		prod, count := lex.maxProds(prods, stateFns)
 		if count == -1 {
-			fmt.Println("No prods match. Breaking…")
 			close(lex.out)
 			break
 		}
 		if prod == nil {
 			token.IsLexemeLiteral = true
-			fmt.Printf("Make len is %v of type 'lexeme literal'", count)
+			fmt.Printf("Make len is %v of type 'lexeme literal'\n", count)
 		} else {
 			token.typ = prod
 			fmt.Printf("Make len is %v of type %s\n", count, prod.Name.String)

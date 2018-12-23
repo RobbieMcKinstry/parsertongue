@@ -31,7 +31,6 @@ func TestLiteralExample1(t *testing.T) {
 	var sentence = []byte(stringLit)
 	var gram = grammar.New(path, root)
 	var _, out = Lex(gram, sentence)
-	fmt.Println("Testing literal example.")
 	for val := range out {
 		if expected, observed := val.Val, stringLit; expected != observed {
 			t.Fatalf("Expected %v but found %v", expected, observed)
@@ -60,6 +59,48 @@ func TestLiteral2Example2(t *testing.T) {
 	var _, out = Lex(gram, sentence)
 	for val := range out {
 		if expected, observed := val.Val, stringLit; expected != observed {
+			t.Fatalf("Expected %v but found %v", expected, observed)
+		}
+	}
+}
+
+func TestImportSpec1(t *testing.T) {
+	const root, path = "S", "../fixtures/import_spec.ebnf"
+	var importStatement = `import "fmt"`
+	var sentence = []byte(importStatement)
+	var gram = grammar.New(path, root)
+	gram.Clean()
+	var _, out = Lex(gram, sentence)
+
+	var expectedTokens = []string{"import", "\"fmt\""}
+	var count = 0
+	for val := range out {
+		if expected, observed := expectedTokens[count], val.Val; expected != observed {
+			t.Fatalf("Expected %v but found %v", expected, observed)
+		}
+		count++
+	}
+	if count != 2 {
+		t.Fatalf("Expected only %v tokens, found %v", 2, count)
+	}
+}
+
+func TestImportSpec2(t *testing.T) {
+	t.Skip()
+	const root, path = "S", "../fixtures/import_spec.ebnf"
+	var importStatement = `
+	import (
+		"fmt"
+		"testing"
+
+		"github.com/RobbieMcKinstry/parsertongue/grammar"
+		"golang.org/x/exp/ebnf"
+	)`
+	var sentence = []byte(importStatement)
+	var gram = grammar.New(path, root)
+	var _, out = Lex(gram, sentence)
+	for val := range out {
+		if expected, observed := val.Val, importStatement; expected != observed {
 			t.Fatalf("Expected %v but found %v", expected, observed)
 		}
 	}
@@ -145,6 +186,7 @@ func TestRun2Example1(t *testing.T) {
 }
 
 func TestSimpleGolang(t *testing.T) {
+	t.Skip()
 	const root, path = "SourceFile", "../fixtures/golang_augmented.ebnf"
 	var sentence = []byte(`package main
 

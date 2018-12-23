@@ -91,7 +91,7 @@ func lexemeNameFromLiteral(tok *ebnf.Token) string {
 // non-lexical productions
 func (gram *G) replaceTokenLiterals(oldToks map[string]*ebnf.Token) {
 	for _, production := range gram.gram {
-		if productionIsTokenSingleton(production) {
+		if productionIsSkippable(production) {
 			continue
 		}
 		gram.replaceExpressionIfLiteral(production.Expr)
@@ -100,15 +100,23 @@ func (gram *G) replaceTokenLiterals(oldToks map[string]*ebnf.Token) {
 
 // returns true if the expression is nil or if
 // the expression is a token only.
-func productionIsTokenSingleton(prod *ebnf.Production) bool {
-	expr := prod.Expr
+// It also returns true if the production is lexical.
+func productionIsSkippable(prod *ebnf.Production) bool {
+	var expr = prod.Expr
+	var result bool
+
 	if expr == nil {
-		return true
+		result = true
 	}
 	if _, ok := expr.(*ebnf.Token); ok {
-		return true
+		result = true
 	}
-	return false
+
+	if IsLexeme(prod.Name.String) {
+		result = true
+	}
+
+	return result
 }
 
 // nameReferenceForToken converts the given token

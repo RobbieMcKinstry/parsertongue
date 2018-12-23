@@ -26,6 +26,7 @@ func TestCleanExample1(t *testing.T) {
 }
 
 func TestClean2Example1(t *testing.T) {
+	t.Skip()
 	// Read in a sample grammar.
 	const root, path = "S", "../fixtures/01.ebnf"
 	var gram = New(path, root)

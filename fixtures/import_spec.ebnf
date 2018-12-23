@@ -1,4 +1,11 @@
-S                      = string_lit .
+S = ImportDecl .
+ImportDecl = "import" ( ImportSpec | "(" ImportSpec ")" ) .
+ImportSpec = [ "." | PackageName ] ImportPath .
+PackageName = identifier .
+ImportPath = string_lit.
+identifier = letter { letter | unicode_digit } .
+letter = unicode_letter | "_" .
+
 string_lit             = raw_string_lit | interpreted_string_lit .
 raw_string_lit         = "`" { unicode_char | newline } "`" .
 interpreted_string_lit = `"` { unicode_value | byte_value } `"` .

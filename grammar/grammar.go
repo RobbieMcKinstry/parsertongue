@@ -68,7 +68,8 @@ func (gram *G) Prod(name string) *ebnf.Production {
 		fmt.Printf("Returning: %v\n", prod)
 		fmt.Printf("Requestion production: %v\n", name)
 		fmt.Printf("Full grammar: %v\n", gram.gram)
-		return nil
+		panic("Bad production request")
+		// return nil
 	}
 	return prod
 }
