@@ -14,3 +14,6 @@ script:
     - dep ensure
     - task build
     - go test ./grammar/... ./lexer/...
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
